@@ -441,9 +441,9 @@ class AdminCog(commands.Cog):
             title="⚙️ Bot Subscription",
             description=(
                 "**Choose a plan to rent the bot.**\n\n"
-                "📦 **Basic** — 1 month (30 days) — 100₮\n"
-                "📦 **Pro** — 6 months (180 days) — 200₮\n"
-                "📦 **Premium** — 1 year (365 days) — 300₮\n\n"
+                "📦 **Basic** — 1 month (30 days) — 59,900₮\n"
+                "📦 **Pro** — 3 months (90 days) — 149,900₮\n"
+                "📦 **Premium** — 6 months (180 days) — 279,900₮\n\n"
                 "💡 Note: When your members purchase paid roles, "
                 "the system will automatically deduct a **3% service fee** from each transaction.\n\n"
                 "⚙️ After subscribing, run `/checksetup` to verify bot permissions!"
@@ -451,9 +451,9 @@ class AdminCog(commands.Cog):
             color=0x3498db
         )
         view = discord.ui.View(timeout=None)
-        view.add_item(SubscribeButton("Basic", 100))
-        view.add_item(SubscribeButton("Pro", 200))
-        view.add_item(SubscribeButton("Premium", 300))
+        view.add_item(SubscribeButton("Basic", 59900))
+        view.add_item(SubscribeButton("Pro", 149900))
+        view.add_item(SubscribeButton("Premium", 279900))
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="plan_add", description="Add a paid role plan (requires active subscription)")
