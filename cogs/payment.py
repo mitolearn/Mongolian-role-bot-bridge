@@ -83,7 +83,7 @@ class PayNowButton(discord.ui.Button):
 
 class CheckPaymentButton(discord.ui.Button):
     def __init__(self, invoice_id: str):
-        super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.primary)
+        super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.secondary)
         self.invoice_id = invoice_id
 
     async def callback(self, interaction: discord.Interaction):
