@@ -323,17 +323,26 @@ class SubscribeButton(discord.ui.Button):
         # Save subscription in DB (status = pending)
         create_subscription(str(interaction.guild.id), self.plan_name, amount, invoice_id, expires_at)
 
-        # QPay link
+        # QPay link with buttons like user payment flow
         url = payment_url or f"https://s.qpay.mn/payment/{invoice_id}"
         embed = discord.Embed(
             title="💳 QPay Subscription Payment",
             description=f"**Plan:** {self.plan_name}\n**Amount:** {amount}₮\n\n"
-                        f"🔗 [Pay with QPay here]({url})\n\n"
-                        f"After paying, click **Check Payment** below to activate your bot.",
-            color=0x00ff88
+                        f"🔥 **STEP 1:** Click **Pay with QPay** button below ⬇️\n"
+                        f"🏦 **STEP 2:** Choose your bank and pay\n"
+                        f"✅ **STEP 3:** Come back and click **Check Payment**\n\n"
+                        f"⚠️ Don't click 'Check Payment' until you complete the payment!",
+            color=0xff9900
         )
 
         view = discord.ui.View()
+        # Add QPay link button (like user payments)
+        view.add_item(discord.ui.Button(
+            label="💳 Pay with QPay", 
+            style=discord.ButtonStyle.link, 
+            url=url
+        ))
+        # Add Check Payment button (grey like user payments)
         view.add_item(CheckPaymentButton(invoice_id, self.plan_name, expires_at))
 
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
@@ -341,7 +350,7 @@ class SubscribeButton(discord.ui.Button):
 
 class CheckPaymentButton(discord.ui.Button):
     def __init__(self, invoice_id: str, plan_name: str, expires_at: str):
-        super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.primary)
+        super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.secondary)
         self.invoice_id = invoice_id
         self.plan_name = plan_name
         self.expires_at = expires_at
