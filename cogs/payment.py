@@ -33,39 +33,52 @@ class PayPlanButton(discord.ui.Button):
         create_payment(invoice_id, str(interaction.guild.id), str(interaction.user.id),
                        self.plan_id, plan["price_mnt"], payment_url or f"qr:{qr_text}")
 
-        # Build payment view
+        # Build payment view with ONLY Pay Now button
         view = discord.ui.View()
-        view.add_item(PayNowButton(invoice_id, payment_url or ""))
-        view.add_item(CheckPaymentButton(invoice_id))
+        view.add_item(PayNowButton(invoice_id, payment_url or "", plan['role_name'], plan['price_mnt']))
 
         embed = discord.Embed(
             title="💳 Payment Ready!",
             description=f"**Plan:** {plan['role_name']}\n"
-                        f"**Amount:** {plan['price_mnt']}₮\n\n"
-                        "📱 **How to Pay:**\n"
-                        "1. Click **Pay Now**\n"
-                        "2. Choose your bank\n"
-                        "3. Complete payment\n"
-                        "4. Return & press **Check Payment**",
+                        f"**Amount:** {plan['price_mnt']:,}₮\n\n"
+                        "📱 **Next Step:**\n"
+                        "👉 Click **Pay Now** to get your payment link",
             color=0x00ff88
         )
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 
 class PayNowButton(discord.ui.Button):
-    def __init__(self, invoice_id: str, payment_url: str):
-        super().__init__(label="💰 Pay Now", style=discord.ButtonStyle.primary)
+    def __init__(self, invoice_id: str, payment_url: str, plan_name: str, amount: int):
+        super().__init__(label="💰 Pay Now", style=discord.ButtonStyle.success, custom_id=f"pay_{invoice_id}")
         self.invoice_id = invoice_id
         self.payment_url = payment_url
+        self.plan_name = plan_name
+        self.amount = amount
 
     async def callback(self, interaction: discord.Interaction):
         url = self.payment_url or f"https://s.qpay.mn/payment/{self.invoice_id}"
+        
+        # Create prominent QPay link button
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(
+            label="🔗 OPEN QPAY - CLICK HERE TO PAY 🔗", 
+            style=discord.ButtonStyle.link, 
+            url=url
+        ))
+        view.add_item(CheckPaymentButton(self.invoice_id))
+        
         embed = discord.Embed(
-            title="💰 QPay Payment",
-            description=f"[**Open Payment Page**]({url})\n\nChoose your bank & pay safely.",
-            color=0x00ff88
+            title="💰 QPay Payment Link Ready!",
+            description=f"**Plan:** {self.plan_name}\n"
+                        f"**Amount:** {self.amount:,}₮\n\n"
+                        f"🔥 **STEP 1:** Click the **QPAY button below** ⬇️\n"
+                        f"🏦 **STEP 2:** Choose your bank and pay\n"
+                        f"✅ **STEP 3:** Come back and click **Check Payment**\n\n"
+                        f"⚠️ Don't click 'Check Payment' until you complete the payment!",
+            color=0xff9900
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 class CheckPaymentButton(discord.ui.Button):
@@ -150,7 +163,12 @@ class CheckPaymentButton(discord.ui.Button):
             )
             await interaction.followup.send(embed=embed, ephemeral=True)
         elif status == "PENDING":
-            await interaction.followup.send("⏳ Payment still pending.", ephemeral=True)
+            await interaction.followup.send(
+                "⏳ **Payment is still pending!**\n\n"
+                "🔗 Please click the **QPAY link above** to complete your payment first.\n"
+                "💡 After paying, come back and click **Check Payment** again.",
+                ephemeral=True
+            )
         elif status == "CANCELLED":
             await interaction.followup.send("❌ Payment was cancelled.", ephemeral=True)
         else:
