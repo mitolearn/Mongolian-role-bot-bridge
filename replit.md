@@ -51,13 +51,25 @@ This is a Discord bot designed for community management with integrated payment 
   - **Owner Checkpoint DM**: Permanent record sent to owner with server info, admin details, amount sent, bank details, transaction breakdown, and timeline - serves as proof for future verification and bank reconciliation
 
 ### Critical Bug Fixes
+- **Improved Renewal UX** (Oct 7, 2025): Redesigned membership expiry renewal flow for better user experience
+  - Removed immediate QPay invoice creation (was wasteful if user didn't want to renew)
+  - Added two-button choice: "Renew Same Plan" (quick renewal) or "See Other Plans" (browse all options)
+  - "See Other Plans" shows full paywall-style menu in DM - user can explore and choose any plan
+  - Only creates QPay invoice after user makes their choice
+  - Works exactly like `/paywall` and `/buy` commands for consistency
+- **Button Timeout Fixed** (Oct 7, 2025): Added `timeout=None` to ALL payment buttons - buttons now work forever without expiring
+  - Fixed 3 places where timeout was missing
+  - Payment buttons will never timeout or expire
+- **Universal Payment Backup** (Oct 7, 2025): `/verifypayment` command as safety backup for ALL payment methods
+  - Works when buttons fail after bot restart (affects `/paywall`, `/buy`, renewal DMs, subscription payments)
+  - Command description updated: "🔄 Backup: Verify payment if Check Payment button doesn't work"
+  - Payment instructions now mention this backup option
+  - Finds user's most recent payment and verifies it automatically
 - **Early Renewal Time Extension Fix** (Oct 7, 2025): Fixed renewals to properly ADD time to existing memberships/subscriptions instead of replacing them
   - User with 5 days left paying for 30 more now gets 35 days total (previously lost 5 days)
   - Admin with subscription expiring in 2 days renewing for 30 days now gets 32 days total
   - Applies to: user role renewals, QPay subscription renewals, and balance-based subscription renewals
   - Smart logic: extends from existing expiry if still valid, otherwise starts from now
-- **Button Interaction Timeout Fix** (Oct 7, 2025): Added `/verifypayment` slash command as reliable alternative to buttons - buttons in DMs can timeout/fail after bot restarts, new command always works
-- **Membership Renewal Payment Verification** (Oct 7, 2025): Fixed missing "Check Payment" button in membership expiry renewal DMs - users can now verify payment and restore role after paying renewal fee
 - **Subscription Renewal Fee Bug** (Oct 3, 2025): Fixed incorrect fee calculation in balance-based renewal - admins now pay exact amount (100₮/200₮/300₮) without inflated 3% deduction
 - **Payment Record Corruption** (Oct 3, 2025): Fixed parameter order in membership expiry renewal flow - prevents data corruption in payment records
 - **Payment Confirmation Fixed**: Added proper interaction response handling to prevent crashes during payment verification

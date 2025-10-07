@@ -82,7 +82,8 @@ class PayNowButton(discord.ui.Button):
                         f"🏦 **STEP 2:** Choose your bank and pay\n"
                         f"✅ **STEP 3:** Come back and click **Check Payment**\n\n"
                         f"⚠️ Don't click 'Check Payment' until you complete the payment!\n"
-                        f"🎯 You will only get the role after clicking Check Payment button.",
+                        f"🎯 You will only get the role after clicking Check Payment button.\n\n"
+                        f"_💡 If buttons don't work, use `/verifypayment` as backup_",
             color=0xff9900
         )
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)

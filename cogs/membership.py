@@ -169,9 +169,9 @@ class MembershipCog(commands.Cog):
     async def before_watcher(self):
         await self.bot.wait_until_ready()
 
-    @app_commands.command(name="verifypayment", description="Verify your QPay payment and get your role")
+    @app_commands.command(name="verifypayment", description="🔄 Backup: Verify payment if Check Payment button doesn't work")
     async def verify_payment_cmd(self, interaction: discord.Interaction):
-        """Allow users to manually verify their payment if buttons fail"""
+        """Allow users to manually verify their payment if buttons fail (e.g. after bot restart)"""
         from database import get_payment_by_user, mark_payment_paid, grant_membership, get_plan
         from utils.qpay import check_qpay_payment_status
         
@@ -186,7 +186,9 @@ class MembershipCog(commands.Cog):
         
         if not payment:
             await interaction.followup.send(
-                "❌ No recent payment found.\n\nUse `/buy` to purchase a role!",
+                "❌ No recent payment found.\n\n"
+                "**ℹ️ This command is a backup for when buttons fail.**\n"
+                "Use `/buy` to purchase a role first!",
                 ephemeral=True
             )
             return
