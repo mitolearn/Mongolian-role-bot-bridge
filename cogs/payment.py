@@ -68,7 +68,7 @@ class PayNowButton(discord.ui.Button):
         # Create prominent QPay link button
         view = discord.ui.View()
         view.add_item(discord.ui.Button(
-            label="🔗 OPEN QPAY - CLICK HERE TO PAY 🔗", 
+            label="💳 Pay with QPay", 
             style=discord.ButtonStyle.link, 
             url=url
         ))
@@ -78,7 +78,7 @@ class PayNowButton(discord.ui.Button):
             title="💰 QPay Payment Link Ready!",
             description=f"**Plan:** {self.plan_name}\n"
                         f"**Amount:** {self.amount:,}₮\n\n"
-                        f"🔥 **STEP 1:** Click the **QPAY button below** ⬇️\n"
+                        f"🔥 **STEP 1:** Click **Pay with QPay** button below ⬇️\n"
                         f"🏦 **STEP 2:** Choose your bank and pay\n"
                         f"✅ **STEP 3:** Come back and click **Check Payment**\n\n"
                         f"⚠️ Don't click 'Check Payment' until you complete the payment!",
