@@ -64,6 +64,7 @@ class SubscriptionPackageView(discord.ui.View):
 
     async def create_qpay_renewal(self, interaction: discord.Interaction, plan_name: str, amount: int, days: int):
         from utils.qpay import create_qpay_invoice
+        from database import get_subscription
         
         await interaction.response.defer(ephemeral=True)
         
@@ -73,8 +74,23 @@ class SubscriptionPackageView(discord.ui.View):
             await interaction.followup.send("❌ Failed to create QPay invoice.", ephemeral=True)
             return
 
-        # Calculate expiry
-        expires_at = (datetime.utcnow() + timedelta(days=days)).isoformat()
+        # Get existing subscription
+        existing = get_subscription(self.guild_id)
+        now = datetime.utcnow()
+        
+        if existing and existing[3] == 'active':
+            # Active subscription exists - calculate expiry from existing end date
+            existing_expiry = datetime.fromisoformat(existing[2])
+            
+            # If still valid, extend from expiry date
+            if existing_expiry > now:
+                expires_at = (existing_expiry + timedelta(days=days)).isoformat()
+            else:
+                # Expired - start from now
+                expires_at = (now + timedelta(days=days)).isoformat()
+        else:
+            # No active subscription - start from now
+            expires_at = (now + timedelta(days=days)).isoformat()
         
         # Save subscription
         create_subscription(self.guild_id, plan_name, amount, invoice_id, expires_at)

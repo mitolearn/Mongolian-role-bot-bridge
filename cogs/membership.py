@@ -97,7 +97,7 @@ class MembershipCog(commands.Cog):
                                 from cogs.payment import PayNowButton, CheckPaymentButton
                                 
                                 view = discord.ui.View(timeout=None)
-                                view.add_item(PayNowButton(invoice_id, payment_url))
+                                view.add_item(PayNowButton(invoice_id, payment_url, plan["role_name"], plan["price_mnt"]))
                                 view.add_item(CheckPaymentButton(invoice_id))
                                 
                                 await member.send(embed=embed, view=view)

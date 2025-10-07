@@ -51,6 +51,11 @@ This is a Discord bot designed for community management with integrated payment 
   - **Owner Checkpoint DM**: Permanent record sent to owner with server info, admin details, amount sent, bank details, transaction breakdown, and timeline - serves as proof for future verification and bank reconciliation
 
 ### Critical Bug Fixes
+- **Early Renewal Time Extension Fix** (Oct 7, 2025): Fixed renewals to properly ADD time to existing memberships/subscriptions instead of replacing them
+  - User with 5 days left paying for 30 more now gets 35 days total (previously lost 5 days)
+  - Admin with subscription expiring in 2 days renewing for 30 days now gets 32 days total
+  - Applies to: user role renewals, QPay subscription renewals, and balance-based subscription renewals
+  - Smart logic: extends from existing expiry if still valid, otherwise starts from now
 - **Button Interaction Timeout Fix** (Oct 7, 2025): Added `/verifypayment` slash command as reliable alternative to buttons - buttons in DMs can timeout/fail after bot restarts, new command always works
 - **Membership Renewal Payment Verification** (Oct 7, 2025): Fixed missing "Check Payment" button in membership expiry renewal DMs - users can now verify payment and restore role after paying renewal fee
 - **Subscription Renewal Fee Bug** (Oct 3, 2025): Fixed incorrect fee calculation in balance-based renewal - admins now pay exact amount (100₮/200₮/300₮) without inflated 3% deduction

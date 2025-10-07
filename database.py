@@ -284,13 +284,45 @@ def get_payment_by_user(guild_id: str, user_id: str):
 
 # ---------- MEMBERSHIPS ----------
 def grant_membership(guild_id: str, user_id: str, plan_id: int, duration_days: int, last_payment_id: str):
-    ends = (datetime.utcnow() + timedelta(days=duration_days)).isoformat()
     conn = _conn(); c = conn.cursor()
-    # Deactivate previous
-    c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=?""", (guild_id, user_id))
-    # Insert new
-    c.execute("""INSERT INTO memberships (guild_id, user_id, plan_id, active, access_ends_at, last_payment_id)
-                 VALUES (?,?,?,?,?,?)""", (guild_id, user_id, plan_id, 1, ends, last_payment_id))
+    
+    # Check if user has existing active membership for this plan
+    c.execute("""SELECT access_ends_at FROM memberships
+                 WHERE guild_id=? AND user_id=? AND plan_id=? AND active=1""",
+              (guild_id, user_id, plan_id))
+    existing = c.fetchone()
+    
+    now = datetime.utcnow()
+    
+    if existing:
+        # User has active membership - extend it from existing end date
+        existing_end = datetime.fromisoformat(existing[0])
+        
+        # If existing membership hasn't expired yet, add to it
+        if existing_end > now:
+            new_end = existing_end + timedelta(days=duration_days)
+        else:
+            # Expired membership - start from now
+            new_end = now + timedelta(days=duration_days)
+        
+        ends = new_end.isoformat()
+        
+        # Update existing membership
+        c.execute("""UPDATE memberships 
+                     SET access_ends_at=?, last_payment_id=?
+                     WHERE guild_id=? AND user_id=? AND plan_id=? AND active=1""",
+                  (ends, last_payment_id, guild_id, user_id, plan_id))
+    else:
+        # No existing membership - create new one from now
+        ends = (now + timedelta(days=duration_days)).isoformat()
+        
+        # Deactivate any other old memberships
+        c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=?""", (guild_id, user_id))
+        
+        # Insert new membership
+        c.execute("""INSERT INTO memberships (guild_id, user_id, plan_id, active, access_ends_at, last_payment_id)
+                     VALUES (?,?,?,?,?,?)""", (guild_id, user_id, plan_id, 1, ends, last_payment_id))
+    
     conn.commit(); conn.close()
     return ends
 
@@ -447,17 +479,35 @@ def renew_subscription_with_balance(guild_id: str, plan_name: str, duration_days
     if available < amount:
         return (False, None, f"Not enough balance. Available: {available:,}₮, Required: {amount:,}₮")
     
-    # Calculate new expiry
-    now = datetime.utcnow()
-    new_expiry = (now + timedelta(days=duration_days)).isoformat()
-    
     conn = _conn(); c = conn.cursor()
+    
+    # Get existing subscription
+    c.execute("SELECT expires_at, status FROM subscriptions WHERE guild_id=?", (guild_id,))
+    existing = c.fetchone()
+    
+    now = datetime.utcnow()
+    
+    if existing and existing[1] == 'active':
+        # Active subscription exists - extend from existing expiry
+        existing_expiry = datetime.fromisoformat(existing[0])
+        
+        # If still valid, extend from expiry date
+        if existing_expiry > now:
+            new_expiry = existing_expiry + timedelta(days=duration_days)
+        else:
+            # Expired - start from now
+            new_expiry = now + timedelta(days=duration_days)
+    else:
+        # No active subscription - start from now
+        new_expiry = now + timedelta(days=duration_days)
+    
+    new_expiry_str = new_expiry.isoformat()
     
     # Update subscription
     c.execute("""UPDATE subscriptions 
                  SET plan_name=?, amount_mnt=?, expires_at=?, status='active'
                  WHERE guild_id=?""",
-              (plan_name, amount, new_expiry, guild_id))
+              (plan_name, amount, new_expiry_str, guild_id))
     
     # Record this as a payout (money used for subscription renewal)
     # No fee calculation needed - admin pays exact amount for subscription
@@ -473,7 +523,7 @@ def renew_subscription_with_balance(guild_id: str, plan_name: str, duration_days
     conn.commit()
     conn.close()
     
-    return (True, new_expiry, f"Successfully renewed with collected balance. New expiry: {new_expiry[:10]}")
+    return (True, new_expiry_str, f"Successfully renewed with collected balance. New expiry: {new_expiry_str[:10]}")
 
 def deactivate_subscription(guild_id: str):
     conn = _conn(); c = conn.cursor()
