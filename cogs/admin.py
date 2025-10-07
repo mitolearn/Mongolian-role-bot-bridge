@@ -390,6 +390,12 @@ class CheckPaymentButton(discord.ui.Button):
 class AdminCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        
+        # Get subscription prices from environment (test vs production)
+        import os
+        self.basic_price = int(os.getenv("SUB_BASIC_PRICE", "100"))  # Default: test price
+        self.pro_price = int(os.getenv("SUB_PRO_PRICE", "200"))      # Default: test price
+        self.premium_price = int(os.getenv("SUB_PREMIUM_PRICE", "300"))  # Default: test price
 
     @app_commands.command(name="checksetup", description="Check if bot has correct permissions and role position")
     @app_commands.checks.has_permissions(administrator=True)
@@ -441,9 +447,9 @@ class AdminCog(commands.Cog):
             title="⚙️ Bot Subscription",
             description=(
                 "**Choose a plan to rent the bot.**\n\n"
-                "📦 **Basic** — 1 month (30 days) — 59,900₮\n"
-                "📦 **Pro** — 3 months (90 days) — 149,900₮\n"
-                "📦 **Premium** — 6 months (180 days) — 279,900₮\n\n"
+                f"📦 **Basic** — 1 month (30 days) — {self.basic_price:,}₮\n"
+                f"📦 **Pro** — 3 months (90 days) — {self.pro_price:,}₮\n"
+                f"📦 **Premium** — 6 months (180 days) — {self.premium_price:,}₮\n\n"
                 "💡 Note: When your members purchase paid roles, "
                 "the system will automatically deduct a **3% service fee** from each transaction.\n\n"
                 "⚙️ After subscribing, run `/checksetup` to verify bot permissions!"
@@ -451,9 +457,9 @@ class AdminCog(commands.Cog):
             color=0x3498db
         )
         view = discord.ui.View(timeout=None)
-        view.add_item(SubscribeButton("Basic", 59900))
-        view.add_item(SubscribeButton("Pro", 149900))
-        view.add_item(SubscribeButton("Premium", 279900))
+        view.add_item(SubscribeButton("Basic", self.basic_price))
+        view.add_item(SubscribeButton("Pro", self.pro_price))
+        view.add_item(SubscribeButton("Premium", self.premium_price))
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="plan_add", description="Add a paid role plan (requires active subscription)")

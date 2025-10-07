@@ -110,9 +110,28 @@ Preferred communication style: Simple, everyday language.
 - **datetime**: Date and time handling utilities
 
 ### Infrastructure
-- **Environment Variables**: Secure configuration management for sensitive tokens
+- **Environment Variables**: Secure configuration management for sensitive tokens and environment-specific settings
 - **SQLite Database**: Local file-based database storage (`database.db` and `community_bot.db`)
+- **Multi-Environment Support**: Separate configurations for test (Replit) and production (Railway) environments
 
-### Authentication Requirements
-- **Discord Bot Token**: Required environment variable `DISCORD_TOKEN`
-- **QPay API Credentials**: Token-based authentication for payment API access
+### Environment Variables Configuration
+
+**Required Variables (All Environments):**
+- `DISCORD_TOKEN`: Discord bot authentication token
+- `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE`: QPay API credentials
+- `OWNER_DISCORD_ID`: Bot owner's Discord ID
+
+**Environment-Specific Variables:**
+
+| Variable | Replit (Test) | Railway (Production) | Purpose |
+|----------|---------------|----------------------|---------|
+| `DB_NAME` | Not set (uses `database.db`) | `production.db` | Database file name |
+| `SUB_BASIC_PRICE` | Not set (uses 100) | `59900` | Basic subscription price |
+| `SUB_PRO_PRICE` | Not set (uses 200) | `149900` | Pro subscription price |
+| `SUB_PREMIUM_PRICE` | Not set (uses 300) | `279900` | Premium subscription price |
+
+**Why This Matters:**
+- Replit uses low test prices (100₮, 200₮, 300₮) for easy testing
+- Railway uses real production prices (59,900₮, 149,900₮, 279,900₮) automatically
+- No risk of accidentally pushing test prices to production - controlled by environment variables
+- Same codebase works perfectly in both environments
