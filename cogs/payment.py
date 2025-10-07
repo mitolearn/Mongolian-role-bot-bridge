@@ -37,12 +37,18 @@ class PayPlanButton(discord.ui.Button):
         view = discord.ui.View()
         view.add_item(PayNowButton(invoice_id, payment_url or "", plan['role_name'], plan['price_mnt']))
 
+        # Build description with plan benefits
+        desc_text = f"**Plan:** {plan['role_name']}\n**Amount:** {plan['price_mnt']:,}₮\n\n"
+        
+        # Add admin's description if available
+        if plan.get('description'):
+            desc_text += f"**✨ What You Get:**\n{plan['description']}\n\n"
+        
+        desc_text += "📱 **Next Step:**\n👉 Click **Pay Now** to get your payment link"
+
         embed = discord.Embed(
             title="💳 Payment Ready!",
-            description=f"**Plan:** {plan['role_name']}\n"
-                        f"**Amount:** {plan['price_mnt']:,}₮\n\n"
-                        "📱 **Next Step:**\n"
-                        "👉 Click **Pay Now** to get your payment link",
+            description=desc_text,
             color=0x00ff88
         )
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
