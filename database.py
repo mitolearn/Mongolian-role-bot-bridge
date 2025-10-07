@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 # Get database name from environment variable (stored in Secrets)
 DB_NAME = os.getenv("DB_NAME", "database.db")
+print(f"🗄️ Using database: {DB_NAME}")
 
 def _conn():
     return sqlite3.connect(DB_NAME)
