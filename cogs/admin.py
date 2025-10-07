@@ -335,7 +335,7 @@ class SubscribeButton(discord.ui.Button):
             color=0xff9900
         )
 
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         # Add QPay link button (like user payments)
         view.add_item(discord.ui.Button(
             label="💳 Pay with QPay", 

@@ -34,7 +34,7 @@ class PayPlanButton(discord.ui.Button):
                        self.plan_id, plan["price_mnt"], payment_url or f"qr:{qr_text}")
 
         # Build payment view with ONLY Pay Now button
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         view.add_item(PayNowButton(invoice_id, payment_url or "", plan['role_name'], plan['price_mnt']))
 
         # Build description with plan benefits
@@ -66,7 +66,7 @@ class PayNowButton(discord.ui.Button):
         url = self.payment_url or f"https://s.qpay.mn/payment/{self.invoice_id}"
         
         # Create prominent QPay link button
-        view = discord.ui.View()
+        view = discord.ui.View(timeout=None)
         view.add_item(discord.ui.Button(
             label="💳 Pay with QPay", 
             style=discord.ButtonStyle.link, 
