@@ -1,0 +1,49 @@
+1. Custom Names for Plans (Bronze, Gold, Premium)
+
+Right now your /plan_add takes only a Discord role and uses its name (e.g. Paid Member).
+Admins want to label them freely, like “Bronze Member”, “Golden VIP”, “Platinum”.
+
+👉 Fix: Add a new argument to /plan_add called display_name. That’s what users will see in /plan_list, /buy, and paywall embeds.
+
+Example change:
+
+@app_commands.describe(
+    role="Pick the role to grant on payment",
+    display_name="Custom plan name (e.g. Bronze, Gold, Premium)",
+    price_mnt="Price in MNT",
+    duration_days="Access duration in days"
+)
+@app_commands.checks.has_permissions(administrator=True)
+async def plan_add(interaction: discord.Interaction, role: discord.Role, display_name: str, price_mnt: int, duration_days: int):
+    add_role_plan(str(interaction.guild.id), str(role.id), display_name, int(price_mnt), int(duration_days))
+    await interaction.response.send_message(
+        f"✅ Plan added: **{display_name}** – {price_mnt}₮ / {duration_days} days.", ephemeral=True
+    )
+
+This way admins don’t need to rename Discord roles, they can call the plan whatever they want.
+
+The role still exists in server (what’s assigned), but the plan has its own “display_name.”
+
+
+
+---
+
+2. Change Bot Name per Community
+
+⚠️ Discord doesn’t let you rename the actual application name per server.
+But you can set a server nickname for the bot in each guild.
+
+Add a command:
+
+@bot.tree.command(name="botname", description="Change the bot's nickname in this server (admin).")
+@app_commands.checks.has_permissions(administrator=True)
+async def botname_cmd(interaction: discord.Interaction, new_name: str):
+    try:
+        await interaction.guild.me.edit(nick=new_name)
+        await interaction.response.send_message(f"✅ Bot nickname changed to **{new_name}** in this server.", ephemeral=True)
+    except discord.Forbidden:
+        await interaction.response.send_message("❌ I don't have permission to change my nickname.", ephemeral=True)
+
+Example: /botname VIP Manager → bot appears as VIP Manager in that server.
+
+Global name = same everywhere, but nickname = custom per community.

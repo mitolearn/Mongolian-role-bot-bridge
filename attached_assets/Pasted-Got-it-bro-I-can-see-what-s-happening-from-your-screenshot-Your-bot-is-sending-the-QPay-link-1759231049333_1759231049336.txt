@@ -1,0 +1,109 @@
+Got it, bro 👑 — I can see what’s happening from your screenshot.
+
+Your bot is sending the QPay link fine, but when you click Check Payment, it always returns unknown. That means your payment status API call isn’t implemented correctly.
+
+
+---
+
+Why this happens
+
+1. When you create an invoice (create_qpay_invoice), QPay gives you an invoice_id.
+
+
+2. To check if it’s paid, you must call their invoice check endpoint:
+
+POST /v2/payment/check
+{ "invoice_id": "xxx" }
+
+This will return something like:
+
+{
+  "invoice_id": "xxx",
+  "payment_status": "PAID",
+  "paid_date": "2025-09-30T10:25:12Z"
+}
+
+
+3. If you don’t call this correctly (or if you only stored invoice_id but didn’t use the API), your bot will always return unknown.
+
+
+
+
+---
+
+Fix Plan
+
+You need to add a check_qpay_invoice function in your utils/qpay.py:
+
+import requests, os
+
+QPAY_BASE = "https://merchant.qpay.mn/v2"
+QPAY_USER = os.getenv("QPAY_USERNAME")
+QPAY_PASS = os.getenv("QPAY_PASSWORD")
+
+def get_token():
+    res = requests.post(
+        f"{QPAY_BASE}/auth/token",
+        auth=(QPAY_USER, QPAY_PASS),
+        json={"client_id": QPAY_USER, "client_secret": QPAY_PASS, "grant_type": "client_credentials"}
+    )
+    res.raise_for_status()
+    return res.json()["access_token"]
+
+def check_qpay_invoice(invoice_id: str):
+    token = get_token()
+    res = requests.post(
+        f"{QPAY_BASE}/payment/check",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"invoice_id": invoice_id}
+    )
+    if res.status_code == 200:
+        data = res.json()
+        return data.get("payment_status")  # should be PAID, NEW, FAILED, etc
+    return None
+
+
+---
+
+Update your Check Payment button
+
+In SubscribeButton after creating invoice, add a button like this:
+
+class CheckPaymentButton(discord.ui.Button):
+    def __init__(self, invoice_id: str, guild_id: str):
+        super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.primary)
+        self.invoice_id = invoice_id
+        self.guild_id = guild_id
+
+    async def callback(self, interaction: discord.Interaction):
+        from utils.qpay import check_qpay_invoice
+        from database import mark_subscription_paid
+
+        status = check_qpay_invoice(self.invoice_id)
+        if status == "PAID":
+            mark_subscription_paid(self.guild_id, self.invoice_id)
+            await interaction.response.send_message("✅ Payment confirmed! Your bot is now active.", ephemeral=True)
+        else:
+            await interaction.response.send_message(f"❓ Payment status: {status or 'unknown'}", ephemeral=True)
+
+And when you send the embed:
+
+view = discord.ui.View(timeout=None)
+view.add_item(CheckPaymentButton(invoice_id, str(interaction.guild.id)))
+await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+
+---
+
+✅ After Fix
+
+If admin paid → Check Payment button returns ✅ and unlocks bot commands.
+
+If not yet paid → still ❓ unknown (or NEW).
+
+
+
+---
+
+👉 Do you want me to stitch this into your current admin.py + qpay.py so you can just copy-paste the full working version?
+

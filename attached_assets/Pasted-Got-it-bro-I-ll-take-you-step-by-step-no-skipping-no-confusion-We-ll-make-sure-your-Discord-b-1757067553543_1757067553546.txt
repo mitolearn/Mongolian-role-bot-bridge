@@ -1,0 +1,255 @@
+Got it bro 💯 I’ll take you step by step — no skipping, no confusion.
+We’ll make sure your Discord bot on Replit is 100% ready before QPay activates.
+
+
+---
+
+🛠 Step-by-Step Preparation on Replit
+
+Step 1. Project Setup
+
+1. Open Replit.
+
+
+2. Create a new Python project → name it discord-qpay-bot.
+
+
+3. Delete main.py content, because we’ll paste our bot code there.
+
+
+
+
+---
+
+Step 2. Secrets Setup (important)
+
+1. On Replit, left sidebar → click Secrets (lock icon).
+
+
+2. Add:
+
+Key: DISCORD_TOKEN → Value: your Discord bot token.
+
+Later (when QPay is ready), we’ll add:
+
+QPAY_CLIENT_ID
+
+QPAY_CLIENT_SECRET
+
+
+
+
+3. Never hardcode tokens in main.py.
+
+
+
+
+---
+
+Step 3. Install Packages
+
+On the Replit shell (bottom window), run:
+
+pip install discord.py requests
+
+This installs the libraries we need.
+
+
+---
+
+Step 4. Add Database Code (database.py)
+
+1. Create a new file in Replit → database.py.
+
+
+2. Paste this:
+
+
+
+import sqlite3
+from datetime import datetime
+
+DB_NAME = "database.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    # Users table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        user_id TEXT PRIMARY KEY,
+        username TEXT,
+        leader_id INTEGER,
+        role_given TEXT,
+        joined_at TEXT
+    )
+    ''')
+
+    # Leaders table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS leaders (
+        leader_id INTEGER PRIMARY KEY,
+        leader_name TEXT,
+        commission_rate REAL,
+        balance REAL
+    )
+    ''')
+
+    # Payments table
+    c.execute('''
+    CREATE TABLE IF NOT EXISTS payments (
+        payment_id TEXT PRIMARY KEY,
+        user_id TEXT,
+        amount REAL,
+        status TEXT,
+        leader_id INTEGER,
+        created_at TEXT
+    )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+def add_user(user_id, username, leader_id=None, role_given=None):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    joined_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.execute("INSERT OR IGNORE INTO users (user_id, username, leader_id, role_given, joined_at) VALUES (?, ?, ?, ?, ?)",
+              (user_id, username, leader_id, role_given, joined_at))
+    conn.commit()
+    conn.close()
+
+def add_leader(leader_id, leader_name, commission_rate=0.1):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("INSERT OR IGNORE INTO leaders (leader_id, leader_name, commission_rate, balance) VALUES (?, ?, ?, ?)",
+              (leader_id, leader_name, commission_rate, 0))
+    conn.commit()
+    conn.close()
+
+def add_payment(payment_id, user_id, amount, status="pending", leader_id=None):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.execute("INSERT OR IGNORE INTO payments (payment_id, user_id, amount, status, leader_id, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+              (payment_id, user_id, amount, status, leader_id, created_at))
+    conn.commit()
+    conn.close()
+
+def update_leader_balance(leader_id, amount):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE leaders SET balance = balance + ? WHERE leader_id = ?", (amount, leader_id))
+    conn.commit()
+    conn.close()
+
+def get_leader_balance(leader_id):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT balance FROM leaders WHERE leader_id = ?", (leader_id,))
+    result = c.fetchone()
+    conn.close()
+    return result[0] if result else 0
+
+
+---
+
+Step 5. Update main.py with Bot + Fake Payment Logic
+
+1. In your main.py, paste this:
+
+
+
+import os
+import discord
+from discord.ext import commands
+from database import init_db, add_user, add_payment, add_leader, update_leader_balance, get_leader_balance
+from datetime import datetime
+
+# Init database
+init_db()
+
+# Bot setup
+TOKEN = os.getenv("DISCORD_TOKEN")
+intents = discord.Intents.default()
+intents.message_content = True
+intents.members = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f"✅ Logged in as {bot.user}")
+    # Create sample leader
+    add_leader(1, "Leader A", 0.2)
+
+# --- Fake Payment for Testing ---
+@bot.command()
+async def fakepay(ctx, amount: float):
+    """Simulate a user paying money (testing before QPay is live)."""
+    user_id = str(ctx.author.id)
+    username = ctx.author.name
+
+    add_user(user_id, username, leader_id=1)
+    payment_id = f"FAKE-{user_id}-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    add_payment(payment_id, user_id, amount, status="paid", leader_id=1)
+    update_leader_balance(1, amount)
+
+    role = discord.utils.get(ctx.guild.roles, name="Paid Member")
+    if role:
+        await ctx.author.add_roles(role)
+
+    await ctx.send(f"💰 Payment simulated: {amount} MNT added. Role assigned ✅")
+
+# --- Check Leader Balance ---
+@bot.command()
+async def checkbalance(ctx):
+    balance = get_leader_balance(1)
+    await ctx.send(f"📊 Leader A balance: {balance} MNT")
+
+bot.run(TOKEN)
+
+
+---
+
+Step 6. Add Role in Discord
+
+1. Open your Discord server.
+
+
+2. Go to Server Settings → Roles.
+
+
+3. Create a role called Paid Member.
+(This must match exactly what we wrote in code).
+
+
+
+
+---
+
+Step 7. Run and Test
+
+1. Click Run in Replit.
+
+
+2. In your Discord server, type:
+
+!fakepay 2000 → bot simulates 2000 MNT payment, gives role.
+
+!checkbalance → shows Leader A’s balance (should increase).
+
+
+
+
+
+---
+
+👉 After this, your bot is fully working with database + Discord roles.
+When QPay is ready, we only need to replace !fakepay with real QPay confirm_payment().
+
+
+---
+
+Do you want me to write the real payment confirm function (with QPay invoice + webhook) now, so it’s ready and just needs activation when QPay gives your keys?
+
