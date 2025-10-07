@@ -1,9 +1,62 @@
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from database import list_expired, get_plan, deactivate_membership, get_user_active_membership, create_payment
+from database import list_expired, get_plan, deactivate_membership, get_user_active_membership, create_payment, list_role_plans
 from datetime import datetime, timedelta
 from utils.qpay import create_qpay_invoice
+
+class RenewalChoiceView(discord.ui.View):
+    """View with two buttons: Renew Same Plan or See Other Plans"""
+    def __init__(self, guild_id: str, guild_name: str, plan_id: int, plan_name: str):
+        super().__init__(timeout=None)
+        self.guild_id = guild_id
+        self.guild_name = guild_name
+        self.plan_id = plan_id
+        self.plan_name = plan_name
+    
+    @discord.ui.button(label="🔄 Renew Same Plan", style=discord.ButtonStyle.success)
+    async def renew_same_plan(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Renew the same plan - triggers payment flow"""
+        from cogs.payment import PayPlanButton
+        
+        # Trigger the same flow as clicking a plan in paywall
+        plan_button = PayPlanButton(self.plan_id, f"{self.plan_name}")
+        await plan_button.callback(interaction)
+    
+    @discord.ui.button(label="🛍️ See Other Plans", style=discord.ButtonStyle.primary)
+    async def see_other_plans(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Show all available plans in DM (like paywall but in DM)"""
+        await interaction.response.defer(ephemeral=True)
+        
+        # Get all active plans
+        plans = list_role_plans(self.guild_id, only_active=True)
+        if not plans:
+            await interaction.followup.send("❌ No plans available right now.", ephemeral=True)
+            return
+        
+        # Create paywall-style embed
+        embed = discord.Embed(
+            title=f"🔑 Available Plans in {self.guild_name}",
+            description="Choose any plan below to unlock exclusive perks!",
+            color=0x2ecc71
+        )
+        
+        # Add plan details
+        for pid, role_id, role_name, price, days, active, description in plans:
+            desc_text = description if description else "_No description added yet_"
+            embed.add_field(
+                name=f"💎 {role_name} — {price:,}₮/{days} days",
+                value=desc_text,
+                inline=False
+            )
+        
+        # Create view with plan buttons
+        from cogs.payment import PayPlanButton
+        view = discord.ui.View(timeout=None)
+        for pid, role_id, role_name, price, days, active, description in plans:
+            view.add_item(PayPlanButton(pid, f"{role_name} — {price}₮/{days}d"))
+        
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
 class MembershipCog(commands.Cog):
     def __init__(self, bot):
@@ -30,83 +83,59 @@ class MembershipCog(commands.Cog):
                     try:
                         # Check if plan is still active
                         if plan.get("active") == 1:
-                            # Plan is still active - offer renewal with payment button
-                            invoice_id, qr_text, payment_url = create_qpay_invoice(
-                                plan["price_mnt"],
+                            # Plan is still active - offer renewal with choice buttons
+                            embed = discord.Embed(
+                                title="⏰ Your Membership Has Expired!",
+                                description=f"Your **{plan['role_name']}** membership in **{guild.name}** has ended.",
+                                color=0xe74c3c
+                            )
+                            
+                            embed.add_field(
+                                name="📦 Expired Plan",
+                                value=f"**{plan['role_name']}**",
+                                inline=True
+                            )
+                            
+                            embed.add_field(
+                                name="💰 Renewal Price",
+                                value=f"**{plan['price_mnt']:,}₮**",
+                                inline=True
+                            )
+                            
+                            embed.add_field(
+                                name="⏱️ Duration",
+                                value=f"**{plan['duration_days']} days**",
+                                inline=True
+                            )
+                            
+                            # Add description if available
+                            desc = plan.get('description', '')
+                            if desc:
+                                embed.add_field(
+                                    name="✨ What You'll Get",
+                                    value=desc,
+                                    inline=False
+                                )
+                            
+                            embed.add_field(
+                                name="🔄 Choose Your Next Step",
+                                value="**🔄 Renew Same Plan** - Quick renewal of your previous plan\n"
+                                      "**🛍️ See Other Plans** - Browse all available plans\n\n"
+                                      "Click a button below to continue!",
+                                inline=False
+                            )
+                            
+                            embed.set_footer(text=f"Server: {guild.name}")
+                            
+                            # Create renewal choice view with two buttons
+                            view = RenewalChoiceView(
+                                str(guild.id), 
+                                guild.name, 
+                                plan_id, 
                                 plan["role_name"]
                             )
                             
-                            if invoice_id and payment_url:
-                                # Calculate new expiry date
-                                new_expiry = datetime.utcnow() + timedelta(days=plan["duration_days"])
-                                
-                                # Create payment record
-                                create_payment(
-                                    invoice_id,
-                                    str(guild.id),
-                                    user_id,
-                                    plan_id,
-                                    plan["price_mnt"],
-                                    payment_url
-                                )
-                                
-                                # Create beautiful embed
-                                embed = discord.Embed(
-                                    title="⏰ Your Membership Has Expired!",
-                                    description=f"Your **{plan['role_name']}** membership in **{guild.name}** has ended.",
-                                    color=0xe74c3c
-                                )
-                                
-                                embed.add_field(
-                                    name="📦 Expired Plan",
-                                    value=f"**{plan['role_name']}**",
-                                    inline=True
-                                )
-                                
-                                embed.add_field(
-                                    name="💰 Renewal Price",
-                                    value=f"**{plan['price_mnt']:,}₮**",
-                                    inline=True
-                                )
-                                
-                                embed.add_field(
-                                    name="⏱️ Duration",
-                                    value=f"**{plan['duration_days']} days**",
-                                    inline=True
-                                )
-                                
-                                # Add description if available
-                                desc = plan.get('description', '')
-                                if desc:
-                                    embed.add_field(
-                                        name="✨ What You'll Get",
-                                        value=desc,
-                                        inline=False
-                                    )
-                                
-                                embed.add_field(
-                                    name="🔄 Renew Now",
-                                    value="**Step 1:** Click **Pay Now** to complete payment\n"
-                                          "**Step 2:** Click **Check Payment** OR use `/verifypayment` to get your role back!",
-                                    inline=False
-                                )
-                                
-                                embed.set_footer(text=f"Server: {guild.name}")
-                                
-                                # Create payment buttons with Check Payment option
-                                from cogs.payment import PayNowButton, CheckPaymentButton
-                                
-                                view = discord.ui.View(timeout=None)
-                                view.add_item(PayNowButton(invoice_id, payment_url, plan["role_name"], plan["price_mnt"]))
-                                view.add_item(CheckPaymentButton(invoice_id))
-                                
-                                await member.send(embed=embed, view=view)
-                            else:
-                                # Fallback if QPay fails
-                                await member.send(
-                                    f"⏰ Your **{plan['role_name']}** membership in **{guild.name}** has expired.\n\n"
-                                    f"Use `/buy` in the server to renew!"
-                                )
+                            await member.send(embed=embed, view=view)
                         else:
                             # Plan is deleted or deactivated - notify user
                             embed = discord.Embed(
