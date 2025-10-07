@@ -692,9 +692,22 @@ class AdminCog(commands.Cog):
             inline=False
         )
         
+        # Manager/Moderator Commands
+        embed.add_field(
+            name="🛡️ Manager Role Commands (Delegate Plan Management)",
+            value=(
+                "**`/set_manager_role`** - Give a role permission to manage plans\n"
+                "**`/view_manager_role`** - Check which role can manage plans\n"
+                "**`/remove_manager_role`** - Remove manager permissions\n"
+                "• Managers can add/edit/delete plans, but NOT handle money\n"
+                "• Only admins can use /status, /growth, /setup"
+            ),
+            inline=False
+        )
+        
         # Analytics & Money
         embed.add_field(
-            name="📊 Analytics & Revenue",
+            name="📊 Analytics & Revenue (Admin Only)",
             value=(
                 "**`/status`** - Revenue dashboard + 'Collect' button\n"
                 "**`/growth`** - Visual charts showing revenue trends 📈\n"
