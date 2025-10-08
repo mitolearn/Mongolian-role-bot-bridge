@@ -2,122 +2,7 @@
 
 ## Overview
 
-This is a Discord bot designed for community management with integrated payment processing and leader commission tracking. The bot handles user registration, payment confirmations through QPay API integration, and manages leader balances with commission-based rewards. It's built using Python with Discord.py for bot functionality and SQLite for data persistence.
-
-## Recent Changes (October 8, 2025)
-
-### Latest Updates (October 8, 2025)
-- **DM Renewal Flow Fixed** (Oct 8, 2025): Renewal buttons now fully work in DMs with complete payment processing
-  - "Renew Same Plan" and "See Other Plans" buttons now create QPay invoices in DMs
-  - Full payment flow in DMs: Choose plan → Get QPay link → Pay → Confirm
-  - All payment buttons (PayPlanButton, PayNowButton, CheckPaymentButton) now support DMs via guild_id parameter
-  - /verifypayment backup already mentioned in payment instructions
-- **Multi-Role Support** (Oct 8, 2025): Users can now purchase and hold multiple roles simultaneously
-  - Each role has its own independent expiry date
-  - When one role expires, other active roles remain untouched
-  - `/myplan` command displays ALL active roles with individual timers
-  - Color-coded status indicators: 🟢 (healthy), 🟡 (expiring soon), 🔴 (expired)
-  - Database properly handles multiple concurrent memberships per user
-  - Membership checkers deactivate only specific expired roles (not all at once)
-  - **Bug Fix**: Member count now counts DISTINCT users (user with 2 roles = 1 member, not 2)
-- **AI Model Optimization** (Oct 8, 2025): Switched to GPT-4o for cost-effective AI advice
-  - Changed from GPT-5 → GPT-4o (faster response, lower token usage, cheaper)
-  - GPT-4o provides high-quality business recommendations without reasoning token overhead
-  - AI advice now responds quickly without blocking Discord heartbeat
-  - Ultra-short prompts (150 tokens max) for 3-5 second responses
-  - 2-3 bullet points only: growth insight + specific action + optional tip
-  - Weekly reports use same fast AI function
-- **/bot_info Updated** (Oct 8, 2025): Command now reflects all latest features
-  - Multi-role support documentation
-  - AI-powered analytics (GPT-4o) with weekly reports
-  - DM renewal flow capabilities
-
-## Recent Changes (October 3, 2025)
-
-### New Features
-- **AI-Powered Weekly Reports** (Oct 8, 2025): Comprehensive automated performance reports with ChatGPT-powered growth strategy
-  - Automatically sent to all server admins every Monday at 21:00 UTC
-  - **Same comprehensive data as `/growth` command:**
-    - Total revenue, 30-day growth percentage, available balance, active members
-    - Top 5 performing role plans with payment counts
-    - Revenue growth chart (30-day line chart)
-    - Subscription status and expiry
-  - **Advanced AI Analysis using ALL server data:**
-    - ChatGPT (GPT-4o) analyzes: revenue trends, growth patterns, top plans, member count, subscription status
-    - Provides 2-3 specific, actionable business recommendations
-    - Data-driven advice on pricing, marketing, retention, and growth opportunities
-- **Growth Analytics Dashboard with AI Advice**: Admins can view comprehensive revenue analytics with AI-powered recommendations using `/growth`
-  - Beautiful visual charts showing 30-day revenue trends (line chart)
-  - Revenue breakdown by role plan (pie chart with percentages)
-  - Growth percentage calculation comparing last 30 days vs previous 30 days
-  - Total revenue, available balance (after 3% fee), and active member count
-  - Top 5 role plans with payment counts
-  - **ChatGPT-Powered Business Advice**: AI analyzes ALL server data (revenue trends, top plans, growth patterns, member count) and provides 3-4 specific, actionable recommendations
-  - Charts generated via QuickChart.io API (no installation needed)
-  - Handles edge cases: new growth, zero revenue, positive/negative trends
-- **Subscription Renewal System**: Automatic expiry warnings and flexible payment options
-  - DM sent to all admins 3 days before subscription expires
-  - Two renewal options: QPay or Pay with Collected Balance
-  - Accurate money tracking - collected balance deducted and recorded in payouts table
-  - Automatic subscription activation after payment
-  - Bot stops working when subscription expires with helpful messages to members
-- **Top Members Dashboard**: Admins can view member spending statistics with `/topmembers`
-  - Shows top 10 overall spenders across all plans with medals (🥇🥈🥉)
-  - Displays top 3 spenders for each individual role plan
-  - Total revenue summary at the top
-  - Beautiful dashboard embeds with member names and payment counts
-- **Plan Descriptions**: Admins can now add custom marketing descriptions to role plans explaining benefits, perks, and what members get
-  - `/plan_add` command opens a modal to add descriptions when creating plans
-  - `/edit_plan_description` command allows updating descriptions anytime
-  - Descriptions appear in `/buy` and `/paywall` embeds, payment confirmations, and renewal DMs
-  - Graceful fallbacks for plans without descriptions
-- **Dual Purchase System**: Users can now buy roles in two ways:
-  - `/paywall` command (Admin posts payment buttons in channel)
-  - `/buy` command (Any user can call directly, ephemeral message)
-- **Bot Information Command**: Enhanced `/bot_info` with critical warnings and detailed guide button
-  - Shows critical warnings first (bot role positioning, permissions)
-  - Quick reference of all commands
-  - "Detailed Guide" button for comprehensive information
-  - Covers setup workflow, payment flow, analytics, troubleshooting
-
-### Payout Rules & Confirmations
-- **Minimum Collection Amount**: 100,000₮ required to request payout
-  - Status command shows warning if balance below minimum
-  - Collect button displays helpful message with amount needed
-  - Only sends DM to owner when balance meets minimum requirement
-  - Prevents small payouts to reduce bank transfer fees
-- **Payout Confirmation System**: Detailed DMs sent when owner marks payout as done
-  - **Admin Confirmation DM**: Sent to admin with collection details, bank account info, request/completion dates, revenue breakdown, and payout ID
-  - **Owner Checkpoint DM**: Permanent record sent to owner with server info, admin details, amount sent, bank details, transaction breakdown, and timeline - serves as proof for future verification and bank reconciliation
-
-### Critical Bug Fixes
-- **Improved Renewal UX** (Oct 7, 2025): Redesigned membership expiry renewal flow for better user experience
-  - Removed immediate QPay invoice creation (was wasteful if user didn't want to renew)
-  - Added two-button choice: "Renew Same Plan" (quick renewal) or "See Other Plans" (browse all options)
-  - "See Other Plans" shows full paywall-style menu in DM - user can explore and choose any plan
-  - Only creates QPay invoice after user makes their choice
-  - Works exactly like `/paywall` and `/buy` commands for consistency
-- **Button Timeout Fixed** (Oct 7, 2025): Added `timeout=None` to ALL payment buttons - buttons now work forever without expiring
-  - Fixed 3 places where timeout was missing
-  - Payment buttons will never timeout or expire
-- **Universal Payment Backup** (Oct 7, 2025): `/verifypayment` command as safety backup for ALL payment methods
-  - Works when buttons fail after bot restart (affects `/paywall`, `/buy`, renewal DMs, subscription payments)
-  - Command description updated: "🔄 Backup: Verify payment if Check Payment button doesn't work"
-  - Payment instructions now mention this backup option
-  - Finds user's most recent payment and verifies it automatically
-- **Early Renewal Time Extension Fix** (Oct 7, 2025): Fixed renewals to properly ADD time to existing memberships/subscriptions instead of replacing them
-  - User with 5 days left paying for 30 more now gets 35 days total (previously lost 5 days)
-  - Admin with subscription expiring in 2 days renewing for 30 days now gets 32 days total
-  - Applies to: user role renewals, QPay subscription renewals, and balance-based subscription renewals
-  - Smart logic: extends from existing expiry if still valid, otherwise starts from now
-- **Subscription Renewal Fee Bug** (Oct 3, 2025): Fixed incorrect fee calculation in balance-based renewal - admins now pay exact amount (100₮/200₮/300₮) without inflated 3% deduction
-- **Payment Record Corruption** (Oct 3, 2025): Fixed parameter order in membership expiry renewal flow - prevents data corruption in payment records
-- **Payment Confirmation Fixed**: Added proper interaction response handling to prevent crashes during payment verification
-- **Database Integrity**: Removed plan ID resequencing to prevent foreign key corruption when deleting plans
-- **Payout System**: Fixed bank account data saving to correctly store user input instead of TextInput objects
-- **Null Safety**: Added comprehensive null checks for guild, member, role, and plan lookups across all commands
-- **QPay Validation**: Added startup validation for QPay credentials with clear error messaging
-- **Discord.py Compatibility**: Updated cog_unload methods to async for compatibility with latest Discord.py
+This Discord bot facilitates community management, integrating payment processing and leader commission tracking. It handles user registration, payment confirmations via QPay, and manages leader balances with a commission-based reward system. The bot is developed in Python using `discord.py` and supports both PostgreSQL and SQLite for data persistence, adapting to the deployment environment. Its purpose is to streamline community operations, automate payment handling, and provide valuable insights through AI-powered analytics. The project aims to enable efficient monetization and growth for Discord communities, allowing seamless sharing of data between the bot and a prospective website.
 
 ## User Preferences
 
@@ -125,71 +10,62 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Database Design
-- **SQLite Database**: Uses a local SQLite database (`database.db`) for data persistence
-- **Relational Schema**: Three main tables with foreign key relationships:
-  - Users table: Stores Discord user information with leader associations
-  - Leaders table: Manages leader profiles, commission rates, and balances
-  - Payments table: Tracks payment transactions and status updates
-- **Data Integrity**: Foreign key constraints enabled to maintain referential integrity
+### UI/UX Decisions
+- **Interactive Buttons**: Extensive use of Discord buttons for payment, renewal, and navigation.
+- **Rich Embeds**: Visually appealing and informative embeds for commands like `/myplan`, `/growth`, `/topmembers`, and `/bot_info`.
+- **Color-Coded Status**: Visual cues (e.g., 🟢, 🟡, 🔴) for membership status in `/myplan`.
+- **Modals for Input**: Utilizes Discord modals for multi-line text input, such as plan descriptions.
+- **Chart Visualization**: Integration with QuickChart.io for generating visual growth and revenue charts.
 
-### Bot Architecture
-- **Discord.py Framework**: Built on the Discord.py library with command prefix "!"
-- **Intent Configuration**: Configured with message content and member intents for full functionality
-- **Modular Design**: Database operations separated into dedicated modules for maintainability
+### Technical Implementations
+- **Modular Python**: Codebase structured with separate modules for database operations (`database_postgres.py`, `database_loader.py`), bot commands, and payment handling.
+- **Database Abstraction**: A `database_loader.py` module intelligently switches between PostgreSQL and SQLite based on the `DATABASE_URL` environment variable, ensuring seamless deployment across environments.
+- **Asynchronous Operations**: Leverages `asyncio` with `discord.py` for non-blocking I/O and efficient handling of concurrent requests.
+- **Robust Error Handling**: Includes comprehensive null checks and error handling for Discord API interactions, database operations, and external API calls.
+- **Environment Variable Configuration**: Uses environment variables for sensitive credentials (Discord token, QPay keys) and environment-specific settings (e.g., subscription prices for test vs. production).
 
-### Payment Processing
-- **Real QPay Integration**: Live payment processing through QPay Mongolia API
-- **Secure Authentication**: Token-based authentication using stored credentials (QPAY_USERNAME, QPAY_PASSWORD, QPAY_INVOICE_CODE)
-- **Invoice Creation**: Automatic QPay invoice generation with real payment URLs
-- **Status Verification**: Real-time payment status checking directly from QPay API
-- **Role Automation**: Automatic Discord role assignment upon payment confirmation
+### Feature Specifications
+- **Payment System**:
+    - **QPay Integration**: Direct integration with QPay Mongolia for invoice generation and payment verification.
+    - **Dual Purchase System**: Users can buy roles via `/paywall` (admin-posted) or `/buy` (user-initiated ephemeral).
+    - **Multi-Role Support**: Users can hold multiple roles simultaneously, each with independent expiry.
+    - **Subscription Renewal**: Automated expiry warnings, flexible renewal options (QPay or collected balance), and proper time extension logic.
+    - **Universal Payment Backup**: `/verifypayment` command to manually verify payments if automated checks fail.
+- **Commission & Payout System**:
+    - **Leader Associations**: Tracks user payments linked to specific leaders.
+    - **Automated Commissions**: Calculates and updates leader balances based on confirmed payments.
+    - **Minimum Payouts**: Enforces a minimum collection amount (100,000₮) before allowing payout requests.
+    - **Detailed Payout Confirmations**: Sends DMs to admins and owners with comprehensive transaction details upon payout completion.
+- **Analytics & Reporting**:
+    - **AI-Powered Weekly Reports**: Automated weekly reports to server admins with comprehensive growth data and GPT-4o powered business recommendations.
+    - **Growth Analytics Dashboard**: `/growth` command provides admins with revenue trends, role plan breakdowns, active member count, and AI-driven insights.
+    - **Top Members Dashboard**: `/topmembers` command displays top spenders overall and per plan.
+- **Community Management**:
+    - **Plan Descriptions**: Admins can add marketing descriptions to role plans.
+    - **Role Automation**: Automatic Discord role assignment/removal based on payment status and expiry.
+    - **Bot Information**: `/bot_info` command provides critical warnings, command list, and a detailed guide.
 
-### Commission System
-- **Leader-based Structure**: Users are associated with leaders who earn commissions
-- **Balance Management**: Automatic balance updates for leaders based on confirmed payments
-- **Rate-based Calculations**: Configurable commission rates per leader
-
-### Development Tools
-- **Database Viewer**: Dedicated utility (`view_db.py`) for database inspection and debugging
-- **Environment Configuration**: Secure token management through environment variables
+### System Design Choices
+- **Database**: PostgreSQL for production (Railway) for scalability and concurrent access, SQLite for development/testing (Replit) for ease of setup.
+- **Discord.py Framework**: Chosen for its robustness, extensive features, and active community.
+- **AI Model**: GPT-4o for AI analysis, selected for its balance of cost-effectiveness, speed, and analytical capabilities.
 
 ## External Dependencies
 
 ### APIs and Services
-- **Discord API**: Core bot functionality through Discord.py library
-- **QPay Payment API**: External payment processing and confirmation service
-- **OpenAI API (ChatGPT)**: AI-powered weekly report analysis and business recommendations using GPT-5 model
+- **Discord API**: Primary platform for bot interaction, provided via the `discord.py` library.
+- **QPay Payment API**: Used for secure payment processing, invoice generation, and status verification.
+- **OpenAI API**: Utilized for AI-powered business recommendations and analysis (GPT-4o model).
+- **QuickChart.io API**: Generates visual charts for analytics dashboards.
 
 ### Python Libraries
-- **discord.py**: Discord bot framework and API wrapper
-- **sqlite3**: Built-in Python SQLite database interface
-- **requests**: HTTP client for external API calls
-- **datetime**: Date and time handling utilities
+- `discord.py`: Core library for Discord bot development.
+- `psycopg2` (implied by PostgreSQL usage): PostgreSQL adapter for Python.
+- `sqlite3`: Built-in library for SQLite database interactions.
+- `requests`: For making HTTP requests to external APIs (QPay, QuickChart.io, OpenAI).
+- `datetime`: For handling date and time operations, crucial for subscriptions and renewals.
 
 ### Infrastructure
-- **Environment Variables**: Secure configuration management for sensitive tokens and environment-specific settings
-- **SQLite Database**: Local file-based database storage (`database.db` and `community_bot.db`)
-- **Multi-Environment Support**: Separate configurations for test (Replit) and production (Railway) environments
-
-### Environment Variables Configuration
-
-**Required Variables (All Environments):**
-- `DISCORD_TOKEN`: Discord bot authentication token
-- `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE`: QPay API credentials
-- `OWNER_DISCORD_ID`: Bot owner's Discord ID
-
-**Environment-Specific Variables:**
-
-| Variable | Replit (Test) | Railway (Production) | Purpose |
-|----------|---------------|----------------------|---------|
-| `DB_NAME` | Not set (uses `database.db`) | `production.db` | Database file name |
-| `SUB_BASIC_PRICE` | Not set (uses 100) | `59900` | Basic subscription price |
-| `SUB_PRO_PRICE` | Not set (uses 200) | `149900` | Pro subscription price |
-| `SUB_PREMIUM_PRICE` | Not set (uses 300) | `279900` | Premium subscription price |
-
-**Why This Matters:**
-- Replit uses low test prices (100₮, 200₮, 300₮) for easy testing
-- Railway uses real production prices (59,900₮, 149,900₮, 279,900₮) automatically
-- No risk of accidentally pushing test prices to production - controlled by environment variables
-- Same codebase works perfectly in both environments
+- **PostgreSQL Database**: Production database hosted on Railway.
+- **SQLite Database**: Local file-based database for testing and backward compatibility.
+- **Environment Variables**: For managing configuration, credentials, and environment-specific settings.
