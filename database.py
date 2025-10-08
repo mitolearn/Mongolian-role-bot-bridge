@@ -370,8 +370,10 @@ def guild_revenue_mnt(guild_id: str, days: int = 30):
     conn.close(); return int(amt)
 
 def count_active_members(guild_id: str):
+    """Count UNIQUE active members (not total memberships)"""
     conn = _conn(); c = conn.cursor()
-    c.execute("""SELECT COUNT(*) FROM memberships WHERE guild_id=? AND active=1""", (guild_id,))
+    # Use DISTINCT to count unique users (one user with 2 roles = 1 member, not 2)
+    c.execute("""SELECT COUNT(DISTINCT user_id) FROM memberships WHERE guild_id=? AND active=1""", (guild_id,))
     n = c.fetchone()[0] or 0
     conn.close(); return int(n)
 

@@ -14,10 +14,14 @@ This is a Discord bot designed for community management with integrated payment 
   - Color-coded status indicators: 🟢 (healthy), 🟡 (expiring soon), 🔴 (expired)
   - Database properly handles multiple concurrent memberships per user
   - Membership checkers deactivate only specific expired roles (not all at once)
+  - **Bug Fix**: Member count now counts DISTINCT users (user with 2 roles = 1 member, not 2)
 - **AI Model Optimization** (Oct 8, 2025): Switched to GPT-4o for cost-effective AI advice
   - Changed from GPT-5 → GPT-4o (faster response, lower token usage, cheaper)
   - GPT-4o provides high-quality business recommendations without reasoning token overhead
   - AI advice now responds quickly without blocking Discord heartbeat
+  - Ultra-short prompts (150 tokens max) for 3-5 second responses
+  - 2-3 bullet points only: growth insight + specific action + optional tip
+  - Weekly reports use same fast AI function
 
 ## Recent Changes (October 3, 2025)
 
