@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import discord
 from discord import app_commands
 from discord.ext import commands
+import os
 from database import (list_role_plans, add_role_plan, has_active_subscription, update_plan_description, 
                      get_plan, set_manager_role, get_manager_role, remove_manager_role)
 
@@ -89,6 +90,11 @@ class DetailedGuideButton(discord.ui.Button):
         super().__init__(label="📖 Detailed Guide", style=discord.ButtonStyle.primary, custom_id="detailed_guide")
     
     async def callback(self, interaction: discord.Interaction):
+        # Get subscription prices from environment variables
+        basic_price = int(os.getenv("SUB_BASIC_PRICE", "100"))
+        pro_price = int(os.getenv("SUB_PRO_PRICE", "200"))
+        premium_price = int(os.getenv("SUB_PREMIUM_PRICE", "300"))
+        
         embed = discord.Embed(
             title="📖 Complete Bot Guide - Every Detail",
             description="Everything you need to know about using this bot successfully",
@@ -111,13 +117,13 @@ class DetailedGuideButton(discord.ui.Button):
             inline=False
         )
         
-        # Subscription Plans
+        # Subscription Plans - Using environment variable prices
         embed.add_field(
             name="💳 Subscription Plans (Required to Use Bot)",
             value=(
-                "**Basic** - 100₮/month (30 days)\n"
-                "**Pro** - 200₮/6 months (180 days)\n"
-                "**Premium** - 300₮/year (365 days)\n\n"
+                f"**Basic** — {basic_price:,}₮ — 1 month (30 days)\n"
+                f"**Pro** — {pro_price:,}₮ — 3 months (90 days)\n"
+                f"**Premium** — {premium_price:,}₮ — 6 months (180 days)\n\n"
                 "• Pay via QPay Mongolia\n"
                 "• Get DM reminder 3 days before expiry\n"
                 "• Can renew with QPay or collected balance\n"
