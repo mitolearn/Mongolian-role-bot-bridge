@@ -503,7 +503,7 @@ class AdminCog(commands.Cog):
         if not plans:
             await interaction.response.send_message("No plans yet.", ephemeral=True)
             return
-        msg = "\n".join([f"**#{i+1}** {'🟢' if p[5]==1 else '🔴'} {p[2]} — {p[3]}₮ / {p[4]}d" for i, p in enumerate(plans)])
+        msg = "\n".join([f"**ID {p[0]}** {'🟢' if p[5]==1 else '🔴'} {p[2]} — {p[3]}₮ / {p[4]}d" for i, p in enumerate(plans)])
         await interaction.response.send_message(msg, ephemeral=True)
 
     @app_commands.command(name="plan_toggle", description="Enable/disable a role plan")
