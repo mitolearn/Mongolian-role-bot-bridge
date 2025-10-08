@@ -7,6 +7,11 @@ This is a Discord bot designed for community management with integrated payment 
 ## Recent Changes (October 8, 2025)
 
 ### Latest Updates (October 8, 2025)
+- **DM Renewal Flow Fixed** (Oct 8, 2025): Renewal buttons now fully work in DMs with complete payment processing
+  - "Renew Same Plan" and "See Other Plans" buttons now create QPay invoices in DMs
+  - Full payment flow in DMs: Choose plan → Get QPay link → Pay → Confirm
+  - All payment buttons (PayPlanButton, PayNowButton, CheckPaymentButton) now support DMs via guild_id parameter
+  - /verifypayment backup already mentioned in payment instructions
 - **Multi-Role Support** (Oct 8, 2025): Users can now purchase and hold multiple roles simultaneously
   - Each role has its own independent expiry date
   - When one role expires, other active roles remain untouched
@@ -22,6 +27,10 @@ This is a Discord bot designed for community management with integrated payment 
   - Ultra-short prompts (150 tokens max) for 3-5 second responses
   - 2-3 bullet points only: growth insight + specific action + optional tip
   - Weekly reports use same fast AI function
+- **/bot_info Updated** (Oct 8, 2025): Command now reflects all latest features
+  - Multi-role support documentation
+  - AI-powered analytics (GPT-4o) with weekly reports
+  - DM renewal flow capabilities
 
 ## Recent Changes (October 3, 2025)
 
