@@ -197,40 +197,6 @@ class WeeklyReportsCog(commands.Cog):
     @weekly_report.before_loop
     async def before_report(self):
         await self.bot.wait_until_ready()
-    
-    @discord.app_commands.command(name="testreport", description="[OWNER] Test weekly report immediately")
-    async def test_report_cmd(self, interaction: discord.Interaction):
-        """Test the weekly report feature immediately (owner only)"""
-        owner_id = os.environ.get("OWNER_DISCORD_ID", "").strip()
-        user_id = str(interaction.user.id)
-        
-        # Debug logging
-        print(f"🔍 Test report: user_id={user_id}, owner_id={owner_id}")
-        
-        if user_id != owner_id:
-            await interaction.response.send_message(
-                f"❌ This command is owner-only.\n\n"
-                f"Your ID: `{user_id}`\n"
-                f"Expected: `{owner_id}`",
-                ephemeral=True
-            )
-            return
-        
-        await interaction.response.defer(ephemeral=True)
-        
-        if not interaction.guild:
-            await interaction.followup.send("❌ Use this in a server to test the report.", ephemeral=True)
-            return
-        
-        try:
-            await self.send_weekly_report(interaction.guild)
-            await interaction.followup.send(
-                f"✅ Test report sent to all admins in **{interaction.guild.name}**!\n\n"
-                f"Check your DMs to see the weekly report with AI-powered advice.",
-                ephemeral=True
-            )
-        except Exception as e:
-            await interaction.followup.send(f"❌ Error sending report: {e}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(WeeklyReportsCog(bot))

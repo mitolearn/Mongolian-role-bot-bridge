@@ -12,7 +12,6 @@ This is a Discord bot designed for community management with integrated payment 
   - Full payment flow in DMs: Choose plan → Get QPay link → Pay → Confirm
   - All payment buttons (PayPlanButton, PayNowButton, CheckPaymentButton) now support DMs via guild_id parameter
   - /verifypayment backup already mentioned in payment instructions
-  - `/testrenewal` owner command added to test renewal DM flow with any plan
 - **Multi-Role Support** (Oct 8, 2025): Users can now purchase and hold multiple roles simultaneously
   - Each role has its own independent expiry date
   - When one role expires, other active roles remain untouched
@@ -44,10 +43,9 @@ This is a Discord bot designed for community management with integrated payment 
     - Revenue growth chart (30-day line chart)
     - Subscription status and expiry
   - **Advanced AI Analysis using ALL server data:**
-    - ChatGPT (GPT-5) analyzes: revenue trends, growth patterns, top plans, member count, subscription status
-    - Provides 3-4 specific, actionable business recommendations
+    - ChatGPT (GPT-4o) analyzes: revenue trends, growth patterns, top plans, member count, subscription status
+    - Provides 2-3 specific, actionable business recommendations
     - Data-driven advice on pricing, marketing, retention, and growth opportunities
-  - `/testreport` command (owner-only) to test the report feature immediately
 - **Growth Analytics Dashboard with AI Advice**: Admins can view comprehensive revenue analytics with AI-powered recommendations using `/growth`
   - Beautiful visual charts showing 30-day revenue trends (line chart)
   - Revenue breakdown by role plan (pie chart with percentages)
