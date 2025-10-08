@@ -3,7 +3,7 @@ import os
 import discord
 from discord import app_commands
 from discord.ext import commands
-from database_loader import (has_active_subscription, total_guild_revenue, count_active_members, 
+from database import (has_active_subscription, total_guild_revenue, count_active_members, 
                      available_to_collect, get_plans_breakdown, create_payout_record, mark_payout_done, get_payout)
 
 # Get owner Discord ID from environment variable

@@ -36,7 +36,7 @@ class WeeklyReportsCog(commands.Cog):
     
     async def send_weekly_report(self, guild: discord.Guild):
         """Generate and send weekly report for a specific server"""
-        from database_loader import (
+        from database import (
             total_guild_revenue, 
             available_to_collect, 
             get_subscription,
