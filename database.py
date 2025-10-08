@@ -313,13 +313,10 @@ def grant_membership(guild_id: str, user_id: str, plan_id: int, duration_days: i
                      WHERE guild_id=? AND user_id=? AND plan_id=? AND active=1""",
                   (ends, last_payment_id, guild_id, user_id, plan_id))
     else:
-        # No existing membership - create new one from now
+        # No existing membership for this plan - create new one from now
         ends = (now + timedelta(days=duration_days)).isoformat()
         
-        # Deactivate any other old memberships
-        c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=?""", (guild_id, user_id))
-        
-        # Insert new membership
+        # Insert new membership (keep other active memberships)
         c.execute("""INSERT INTO memberships (guild_id, user_id, plan_id, active, access_ends_at, last_payment_id)
                      VALUES (?,?,?,?,?,?)""", (guild_id, user_id, plan_id, 1, ends, last_payment_id))
     
