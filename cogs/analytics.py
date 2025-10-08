@@ -13,45 +13,26 @@ class AnalyticsCog(commands.Cog):
     async def get_comprehensive_ai_advice(self, guild_name: str, analytics_data: dict) -> str:
         """Generate comprehensive AI advice using ALL server data"""
         
-        # Build detailed prompt with all data
-        prompt = f"""You are an expert business advisor for Discord server monetization. Analyze this comprehensive data and provide 3-4 specific, actionable recommendations.
+        # Build ultra-concise prompt for fast response
+        prompt = f"""Give 2-3 SHORT growth tips for this Discord server:
 
-SERVER: {guild_name}
+Revenue: {analytics_data['total_revenue']:,}₮ | Growth: {analytics_data['growth_text']}
+Members: {analytics_data['active_members']} | Top plan: {analytics_data['top_plans_text'].split(chr(10))[0] if analytics_data['top_plans_text'] != 'No data yet' else 'None'}
 
-📊 REVENUE METRICS:
-- All-Time Total: {analytics_data['total_revenue']:,}₮
-- Last 30 Days: {analytics_data['last_30_days']:,}₮
-- Previous 30 Days: {analytics_data['prev_30_days']:,}₮
-- Available Balance: {analytics_data['available_balance']:,}₮
-- Growth: {analytics_data['growth_text']}
-
-👥 MEMBERSHIP:
-- Active Members: {analytics_data['active_members']}
-- Active Plans: {analytics_data['plan_count']}
-
-🎯 TOP PERFORMING PLANS:
-{analytics_data['top_plans_text']}
-
-🤖 BOT STATUS:
-- Subscription: {analytics_data['subscription_status']}
-
-Based on this data, provide:
-1. Revenue trend analysis (what's working/not working)
-2. Specific pricing/marketing recommendations
-3. Member retention strategies
-4. Growth opportunities
-
-Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
+Give 2-3 bullets (1 sentence each):
+• What's working/not working
+• One action to take
+Be brief and specific."""
 
         try:
             # Using GPT-4o for faster, more cost-effective advice
             response = self.openai.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are an expert business advisor specializing in Discord server monetization and revenue optimization. Provide data-driven, actionable advice."},
+                    {"role": "system", "content": "Business advisor. Give 2-3 bullet points, 1 sentence each. Be brief."},
                     {"role": "user", "content": prompt}
                 ],
-                max_completion_tokens=500  # GPT-4o doesn't use reasoning tokens, so 500 is enough
+                max_completion_tokens=150  # Ultra-short for speed (fits Discord, responds fast)
             )
             
             content = response.choices[0].message.content
