@@ -7,6 +7,13 @@ This is a Discord bot designed for community management with integrated payment 
 ## Recent Changes (October 3, 2025)
 
 ### New Features
+- **AI-Powered Weekly Reports** (Oct 8, 2025): Automated weekly performance reports with ChatGPT-powered advice
+  - Automatically sent to all server admins every Monday at 21:00 UTC
+  - Includes: total revenue, weekly revenue, available balance, subscription status, active plan count
+  - ChatGPT analyzes server performance and provides 3 personalized, actionable recommendations
+  - Smart advice based on revenue trends, growth patterns, and subscription status
+  - Helps admins understand their performance and improve monetization strategies
+  - `/testreport` command (owner-only) to test the report feature immediately
 - **Growth Analytics Dashboard**: Admins can view comprehensive revenue analytics with `/growth`
   - Beautiful visual charts showing 30-day revenue trends (line chart)
   - Revenue breakdown by role plan (pie chart with percentages)
@@ -119,6 +126,7 @@ Preferred communication style: Simple, everyday language.
 ### APIs and Services
 - **Discord API**: Core bot functionality through Discord.py library
 - **QPay Payment API**: External payment processing and confirmation service
+- **OpenAI API (ChatGPT)**: AI-powered weekly report analysis and business recommendations using GPT-5 model
 
 ### Python Libraries
 - **discord.py**: Discord bot framework and API wrapper

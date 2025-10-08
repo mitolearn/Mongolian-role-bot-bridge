@@ -34,7 +34,8 @@ initial_extensions = [
     "cogs.status",
     "cogs.subscription_checker",
     "cogs.owner",
-    "cogs.analytics"
+    "cogs.analytics",
+    "cogs.weekly_reports"
 ]
 
 async def load_cogs():
