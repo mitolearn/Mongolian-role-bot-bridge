@@ -44,6 +44,7 @@ Based on this data, provide:
 Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
 
         try:
+            print(f"🤖 Calling OpenAI API for {guild_name}...")
             # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
             # do not change this unless explicitly requested by the user
             response = self.openai.chat.completions.create(
@@ -55,10 +56,14 @@ Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
                 max_completion_tokens=500
             )
             
-            return response.choices[0].message.content.strip()
+            advice = response.choices[0].message.content.strip()
+            print(f"✅ OpenAI returned {len(advice)} characters of advice")
+            return advice
         
         except Exception as e:
             print(f"❌ OpenAI API error: {e}")
+            import traceback
+            traceback.print_exc()
             # Fallback advice
             if analytics_data['growth_percent'] and analytics_data['growth_percent'] > 20:
                 return "🔥 **Strong Growth!** Your revenue is trending up significantly. Focus on:\n• Maintaining current marketing efforts\n• Adding premium tiers for top spenders\n• Engaging with new members to improve retention"
@@ -183,6 +188,12 @@ Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
         
         # Get AI advice
         ai_advice = await self.get_comprehensive_ai_advice(interaction.guild.name, analytics_data)
+        
+        # Ensure advice exists and fits Discord's 1024 char limit for embed fields
+        if not ai_advice or ai_advice.strip() == "":
+            ai_advice = "📊 Enable AI recommendations by ensuring OpenAI API is configured properly."
+        elif len(ai_advice) > 1024:
+            ai_advice = ai_advice[:1020] + "..."
         
         # Add AI advice to embed
         embed.add_field(
