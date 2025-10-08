@@ -12,6 +12,7 @@ This is a Discord bot designed for community management with integrated payment 
   - Full payment flow in DMs: Choose plan → Get QPay link → Pay → Confirm
   - All payment buttons (PayPlanButton, PayNowButton, CheckPaymentButton) now support DMs via guild_id parameter
   - /verifypayment backup already mentioned in payment instructions
+  - `/testrenewal` owner command added to test renewal DM flow with any plan
 - **Multi-Role Support** (Oct 8, 2025): Users can now purchase and hold multiple roles simultaneously
   - Each role has its own independent expiry date
   - When one role expires, other active roles remain untouched

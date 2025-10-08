@@ -245,6 +245,61 @@ class OwnerCog(commands.Cog):
         # Send all embeds (ephemeral only in guilds, not DMs)
         await interaction.followup.send(embeds=embeds, ephemeral=not is_dm)
 
+    @app_commands.command(name="testrenewal", description="[OWNER ONLY] Test renewal DM flow with a specific plan")
+    async def test_renewal_cmd(self, interaction: discord.Interaction, guild_id: str, plan_id: int):
+        owner_id = int(os.getenv("OWNER_DISCORD_ID", "0"))
+        
+        # Check if user is owner
+        if owner_id == 0 or interaction.user.id != owner_id:
+            await interaction.response.send_message("❌ This command is owner-only.", ephemeral=True)
+            return
+        
+        from database import get_plan
+        from cogs.membership import RenewalChoiceView
+        
+        # Get the plan details
+        plan = get_plan(plan_id)
+        if not plan:
+            await interaction.response.send_message(f"❌ Plan ID {plan_id} not found.", ephemeral=True)
+            return
+        
+        # Get guild name
+        guild = self.bot.get_guild(int(guild_id))
+        guild_name = guild.name if guild else f"Server {guild_id}"
+        
+        # Send renewal DM to the owner
+        try:
+            embed = discord.Embed(
+                title="⏰ Your Membership Has Expired! (TEST)",
+                description=f"**[TEST MODE]** Testing renewal flow for **{plan['role_name']}** in **{guild_name}**.",
+                color=0xe74c3c
+            )
+            
+            # Add plan description if available
+            if plan.get('description'):
+                embed.add_field(
+                    name="✨ What This Role Includes:",
+                    value=plan['description'],
+                    inline=False
+                )
+            
+            embed.add_field(
+                name="💡 Want to Renew?",
+                value="Choose an option below to continue:",
+                inline=False
+            )
+            
+            # Create renewal choice view with the plan details
+            view = RenewalChoiceView(guild_id, guild_name, plan_id, plan['role_name'])
+            
+            await interaction.user.send(embed=embed, view=view)
+            await interaction.response.send_message(
+                f"✅ Test renewal DM sent for **{plan['role_name']}** in **{guild_name}**!\nCheck your DMs to test the payment flow.",
+                ephemeral=True
+            )
+        except discord.Forbidden:
+            await interaction.response.send_message("❌ Couldn't send you a DM. Check your privacy settings.", ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(OwnerCog(bot))
