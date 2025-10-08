@@ -255,69 +255,63 @@ class MembershipCog(commands.Cog):
                 ephemeral=True
             )
 
-    @app_commands.command(name="myplan", description="Check your active membership and expiry date")
+    @app_commands.command(name="myplan", description="Check your active memberships and expiry dates")
     async def myplan_cmd(self, interaction: discord.Interaction):
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
             return
 
-        # Get user's active membership
-        membership = get_user_active_membership(str(interaction.guild.id), str(interaction.user.id))
+        # Get ALL active memberships for user
+        memberships = get_user_active_membership(str(interaction.guild.id), str(interaction.user.id))
         
-        if not membership:
+        if not memberships or len(memberships) == 0:
             await interaction.response.send_message(
-                "❌ You don't have an active membership.\n\nUse `/buy` to purchase a role!",
+                "❌ You don't have any active memberships.\n\nUse `/buy` to purchase a role!",
                 ephemeral=True
             )
             return
 
-        plan_id, access_ends_at = membership
-        
-        # Get plan details
-        plan = get_plan(int(plan_id))
-        if not plan:
-            await interaction.response.send_message("❌ Plan not found.", ephemeral=True)
-            return
-
-        # Calculate remaining days
-        try:
-            expiry_date = datetime.fromisoformat(access_ends_at)
-            days_left = (expiry_date - datetime.utcnow()).days
-            
-            if days_left < 0:
-                days_left = 0
-        except:
-            days_left = 0
-
-        # Create embed with membership info
+        # Create embed showing all memberships
         embed = discord.Embed(
-            title="🎫 Your Membership",
-            description=f"Here's your current subscription details:",
-            color=0x2ecc71 if days_left > 7 else 0xe74c3c
+            title="🎫 Your Memberships",
+            description=f"You have **{len(memberships)}** active role{'s' if len(memberships) != 1 else ''}:",
+            color=0x2ecc71
         )
         
-        embed.add_field(
-            name="📦 Plan",
-            value=f"**{plan['role_name']}**",
-            inline=True
-        )
+        # Track if any membership is expiring soon
+        has_expiring_soon = False
         
-        embed.add_field(
-            name="⏰ Expires On",
-            value=f"{access_ends_at[:10]}",
-            inline=True
-        )
+        for plan_id, access_ends_at in memberships:
+            # Get plan details
+            plan = get_plan(int(plan_id))
+            if not plan:
+                continue
+            
+            # Calculate remaining days
+            try:
+                expiry_date = datetime.fromisoformat(access_ends_at)
+                days_left = (expiry_date - datetime.utcnow()).days
+                
+                if days_left < 0:
+                    days_left = 0
+                
+                if days_left <= 7:
+                    has_expiring_soon = True
+            except:
+                days_left = 0
+            
+            # Add field for this membership
+            status_emoji = "🟢" if days_left > 7 else ("🟡" if days_left > 0 else "🔴")
+            
+            embed.add_field(
+                name=f"{status_emoji} {plan['role_name']}",
+                value=f"**Expires:** {access_ends_at[:10]}\n**Days left:** {days_left} day{'s' if days_left != 1 else ''}",
+                inline=True
+            )
         
-        embed.add_field(
-            name="⏳ Days Remaining",
-            value=f"**{days_left}** days",
-            inline=True
-        )
-        
-        if days_left <= 7 and days_left > 0:
-            embed.set_footer(text="⚠️ Your membership is expiring soon! Renew with /buy")
-        elif days_left == 0:
-            embed.set_footer(text="⚠️ Your membership has expired or expires today!")
+        # Set footer based on status
+        if has_expiring_soon:
+            embed.set_footer(text="⚠️ Some memberships expiring soon! Renew with /buy")
         else:
             embed.set_footer(text="✨ Enjoy your benefits!")
 
