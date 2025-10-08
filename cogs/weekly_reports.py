@@ -193,9 +193,19 @@ Use emojis and be encouraging. Keep it brief and practical."""
     @discord.app_commands.command(name="testreport", description="[OWNER] Test weekly report immediately")
     async def test_report_cmd(self, interaction: discord.Interaction):
         """Test the weekly report feature immediately (owner only)"""
-        owner_id = os.environ.get("OWNER_DISCORD_ID")
-        if str(interaction.user.id) != owner_id:
-            await interaction.response.send_message("❌ This command is owner-only.", ephemeral=True)
+        owner_id = os.environ.get("OWNER_DISCORD_ID", "").strip()
+        user_id = str(interaction.user.id)
+        
+        # Debug logging
+        print(f"🔍 Test report: user_id={user_id}, owner_id={owner_id}")
+        
+        if user_id != owner_id:
+            await interaction.response.send_message(
+                f"❌ This command is owner-only.\n\n"
+                f"Your ID: `{user_id}`\n"
+                f"Expected: `{owner_id}`",
+                ephemeral=True
+            )
             return
         
         await interaction.response.defer(ephemeral=True)
