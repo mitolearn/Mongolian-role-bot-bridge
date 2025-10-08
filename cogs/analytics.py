@@ -56,9 +56,20 @@ Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
                 max_completion_tokens=500
             )
             
-            advice = response.choices[0].message.content.strip()
-            print(f"✅ OpenAI returned {len(advice)} characters of advice")
-            return advice
+            # Debug the full response
+            print(f"📋 Full OpenAI response: {response}")
+            print(f"📋 Message object: {response.choices[0].message}")
+            
+            content = response.choices[0].message.content
+            print(f"📋 Raw content: {repr(content)}")
+            
+            if content:
+                advice = content.strip()
+                print(f"✅ OpenAI returned {len(advice)} characters of advice")
+                return advice
+            else:
+                print(f"⚠️ OpenAI returned empty/None content")
+                return "AI response was empty. Please try again."
         
         except Exception as e:
             print(f"❌ OpenAI API error: {e}")
