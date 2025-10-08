@@ -344,11 +344,12 @@ def get_membership_by_invoice(invoice_id: str):
     return row
 
 def get_user_active_membership(guild_id: str, user_id: str):
+    """Get ALL active memberships for a user (supports multiple roles)"""
     conn = _conn(); c = conn.cursor()
     c.execute("""SELECT plan_id, access_ends_at FROM memberships
                  WHERE guild_id=? AND user_id=? AND active=1""", (guild_id, user_id))
-    row = c.fetchone(); conn.close()
-    return row
+    rows = c.fetchall(); conn.close()
+    return rows  # Returns list of (plan_id, access_ends_at) tuples
 
 # ---------- STATS ----------
 def guild_revenue_mnt(guild_id: str, days: int = 30):
