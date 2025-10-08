@@ -44,15 +44,14 @@ Based on this data, provide:
 Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
 
         try:
-            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-            # do not change this unless explicitly requested by the user
+            # Using GPT-4o for faster, more cost-effective advice
             response = self.openai.chat.completions.create(
-                model="gpt-5",
+                model="gpt-4o",
                 messages=[
                     {"role": "system", "content": "You are an expert business advisor specializing in Discord server monetization and revenue optimization. Provide data-driven, actionable advice."},
                     {"role": "user", "content": prompt}
                 ],
-                max_completion_tokens=2000  # Increased to allow room for both reasoning and output
+                max_completion_tokens=500  # GPT-4o doesn't use reasoning tokens, so 500 is enough
             )
             
             content = response.choices[0].message.content
