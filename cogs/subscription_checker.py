@@ -290,8 +290,8 @@ class SubscriptionChecker(commands.Cog):
                     except Exception as e:
                         print(f"❌ Could not DM {member.name}: {e}")
                 
-                # Deactivate membership in database
-                deactivate_membership(str(guild.id), str(user_id))
+                # Deactivate only THIS specific membership in database (supports multiple roles)
+                deactivate_membership(str(guild.id), str(user_id), plan_id)
 
     @warn_expiring_soon.before_loop
     async def before_warn_expiring(self):

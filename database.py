@@ -331,9 +331,18 @@ def list_expired(guild_id: str):
     rows = c.fetchall(); conn.close()
     return rows
 
-def deactivate_membership(guild_id: str, user_id: str):
+def deactivate_membership(guild_id: str, user_id: str, plan_id: int = None):
+    """Deactivate specific membership or all memberships for a user"""
     conn = _conn(); c = conn.cursor()
-    c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=?""", (guild_id, user_id))
+    
+    if plan_id is not None:
+        # Deactivate only specific membership (for multiple role support)
+        c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=? AND plan_id=?""", 
+                  (guild_id, user_id, plan_id))
+    else:
+        # Deactivate all memberships (legacy behavior)
+        c.execute("""UPDATE memberships SET active=0 WHERE guild_id=? AND user_id=?""", (guild_id, user_id))
+    
     conn.commit(); conn.close()
 
 def get_membership_by_invoice(invoice_id: str):

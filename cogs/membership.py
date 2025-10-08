@@ -73,7 +73,8 @@ class MembershipCog(commands.Cog):
             for user_id, plan_id in expired:
                 member = guild.get_member(int(user_id))
                 plan = get_plan(int(plan_id))
-                deactivate_membership(str(guild.id), user_id)
+                # Deactivate only THIS specific membership (supports multiple roles)
+                deactivate_membership(str(guild.id), user_id, int(plan_id))
                 if member and plan:
                     role = guild.get_role(int(plan["role_id"]))
                     if role:
