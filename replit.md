@@ -7,19 +7,25 @@ This is a Discord bot designed for community management with integrated payment 
 ## Recent Changes (October 3, 2025)
 
 ### New Features
-- **AI-Powered Weekly Reports** (Oct 8, 2025): Automated weekly performance reports with ChatGPT-powered advice
+- **AI-Powered Weekly Reports** (Oct 8, 2025): Comprehensive automated performance reports with ChatGPT-powered growth strategy
   - Automatically sent to all server admins every Monday at 21:00 UTC
-  - Includes: total revenue, weekly revenue, available balance, subscription status, active plan count
-  - ChatGPT analyzes server performance and provides 3 personalized, actionable recommendations
-  - Smart advice based on revenue trends, growth patterns, and subscription status
-  - Helps admins understand their performance and improve monetization strategies
+  - **Same comprehensive data as `/growth` command:**
+    - Total revenue, 30-day growth percentage, available balance, active members
+    - Top 5 performing role plans with payment counts
+    - Revenue growth chart (30-day line chart)
+    - Subscription status and expiry
+  - **Advanced AI Analysis using ALL server data:**
+    - ChatGPT (GPT-5) analyzes: revenue trends, growth patterns, top plans, member count, subscription status
+    - Provides 3-4 specific, actionable business recommendations
+    - Data-driven advice on pricing, marketing, retention, and growth opportunities
   - `/testreport` command (owner-only) to test the report feature immediately
-- **Growth Analytics Dashboard**: Admins can view comprehensive revenue analytics with `/growth`
+- **Growth Analytics Dashboard with AI Advice**: Admins can view comprehensive revenue analytics with AI-powered recommendations using `/growth`
   - Beautiful visual charts showing 30-day revenue trends (line chart)
   - Revenue breakdown by role plan (pie chart with percentages)
   - Growth percentage calculation comparing last 30 days vs previous 30 days
   - Total revenue, available balance (after 3% fee), and active member count
   - Top 5 role plans with payment counts
+  - **ChatGPT-Powered Business Advice**: AI analyzes ALL server data (revenue trends, top plans, growth patterns, member count) and provides 3-4 specific, actionable recommendations
   - Charts generated via QuickChart.io API (no installation needed)
   - Handles edge cases: new growth, zero revenue, positive/negative trends
 - **Subscription Renewal System**: Automatic expiry warnings and flexible payment options

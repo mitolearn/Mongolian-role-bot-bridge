@@ -40,73 +40,147 @@ class WeeklyReportsCog(commands.Cog):
             total_guild_revenue, 
             available_to_collect, 
             get_subscription,
-            list_role_plans
+            list_role_plans,
+            get_growth_stats,
+            get_role_revenue_breakdown,
+            get_revenue_by_day
         )
+        from utils.charts import generate_revenue_growth_chart, generate_role_breakdown_chart
         
         guild_id = str(guild.id)
         
-        # Get server stats
+        # Get comprehensive server stats (same as /growth command)
         total_revenue = total_guild_revenue(guild_id)
         available_balance = available_to_collect(guild_id)
         subscription = get_subscription(guild_id)
         plans = list_role_plans(guild_id, only_active=True)
+        growth_stats = get_growth_stats(guild_id)
+        role_breakdown = get_role_revenue_breakdown(guild_id)
+        daily_revenue = get_revenue_by_day(guild_id, days=30)
         
-        # Calculate weekly revenue (last 7 days)
-        weekly_revenue = self.get_weekly_revenue(guild_id)
+        # Prepare growth text
+        growth_percent = growth_stats['growth_percent']
+        if growth_percent is None:
+            growth_text = "New Growth!"
+        elif growth_percent > 0:
+            growth_text = f"+{growth_percent:.1f}%"
+        elif growth_percent < 0:
+            growth_text = f"{growth_percent:.1f}%"
+        else:
+            growth_text = "No Change"
         
-        # Get AI-powered advice
-        advice = await self.get_ai_advice(
-            guild_name=guild.name,
-            total_revenue=total_revenue,
-            weekly_revenue=weekly_revenue,
-            available_balance=available_balance,
-            subscription=subscription,
-            plan_count=len(plans) if plans else 0
-        )
+        # Prepare top plans text for AI
+        top_plans_text = "\n".join([
+            f"{i+1}. {name}: {revenue:,}₮ ({count} payments)"
+            for i, (name, revenue, count) in enumerate(role_breakdown[:5])
+        ]) if role_breakdown else "No data yet"
         
-        # Create beautiful report embed
+        # Prepare analytics data for AI
+        analytics_data = {
+            'total_revenue': total_revenue,
+            'last_30_days': growth_stats['last_30_days'],
+            'prev_30_days': growth_stats['prev_30_days'],
+            'available_balance': available_balance,
+            'growth_percent': growth_percent,
+            'growth_text': growth_text,
+            'active_members': growth_stats['active_members'],
+            'plan_count': len(plans) if plans else 0,
+            'top_plans_text': top_plans_text,
+            'subscription_status': 'Active' if subscription and subscription[3] == 'active' else 'Inactive or Expired'
+        }
+        
+        # Get comprehensive AI advice using same function as /growth
+        from cogs.analytics import AnalyticsCog
+        analytics_cog = self.bot.get_cog('AnalyticsCog')
+        if analytics_cog:
+            advice = await analytics_cog.get_comprehensive_ai_advice(guild.name, analytics_data)
+        else:
+            advice = "Enable analytics for AI-powered recommendations!"
+        
+        # Create comprehensive report embed (same structure as /growth command)
         embed = discord.Embed(
             title="📊 Weekly Performance Report",
             description=f"**Server:** {guild.name}\n"
                        f"**Date:** {datetime.utcnow().strftime('%B %d, %Y')}\n\n"
-                       f"Here's your automated weekly summary with AI-powered recommendations!",
-            color=0x3498db
+                       f"Your automated weekly analytics with AI-powered growth strategy!",
+            color=0x2ecc71,
+            timestamp=datetime.utcnow()
         )
         
-        # Stats section
+        # Growth emoji based on performance
+        if growth_percent is None:
+            growth_emoji = "🚀"
+        elif growth_percent > 0:
+            growth_emoji = "📈"
+        elif growth_percent < 0:
+            growth_emoji = "📉"
+        else:
+            growth_emoji = "➖"
+        
+        # Revenue metrics (same as /growth)
         embed.add_field(
-            name="💰 Revenue Summary",
-            value=f"**All-Time Total:** {total_revenue:,}₮\n"
-                  f"**This Week:** {weekly_revenue:,}₮\n"
-                  f"**Available to Collect:** {available_balance:,}₮",
+            name="💰 Total Revenue",
+            value=f"**{total_revenue:,}₮**\n_All-time earnings_",
+            inline=True
+        )
+        
+        embed.add_field(
+            name="💵 Available to Collect",
+            value=f"**{available_balance:,}₮**\n_After 3% fee_",
+            inline=True
+        )
+        
+        embed.add_field(
+            name="👥 Active Members",
+            value=f"**{growth_stats['active_members']}**\n_Current subscribers_",
+            inline=True
+        )
+        
+        embed.add_field(
+            name=f"{growth_emoji} 30-Day Growth",
+            value=f"**{growth_text}**\n"
+                  f"Last 30d: {growth_stats['last_30_days']:,}₮\n"
+                  f"Previous 30d: {growth_stats['prev_30_days']:,}₮",
             inline=False
         )
+        
+        # Top performing plans
+        if role_breakdown:
+            role_revenue_text = "\n".join([
+                f"**{i+1}.** {name} — {revenue:,}₮ ({count} payments)"
+                for i, (name, revenue, count) in enumerate(role_breakdown[:5])
+            ])
+            
+            embed.add_field(
+                name="🎯 Top Role Plans",
+                value=role_revenue_text or "_No data yet_",
+                inline=False
+            )
         
         # Subscription status
         if subscription:
             plan_name, amount, expires_at, status = subscription
             embed.add_field(
                 name="🤖 Bot Subscription",
-                value=f"**Plan:** {plan_name}\n"
-                      f"**Status:** {'✅ Active' if status == 'active' else '❌ Inactive'}\n"
+                value=f"**Plan:** {plan_name} | **Status:** {'✅ Active' if status == 'active' else '❌ Inactive'}\n"
                       f"**Expires:** {expires_at[:10] if expires_at else 'N/A'}",
                 inline=False
             )
-        else:
-            embed.add_field(
-                name="⚠️ Bot Subscription",
-                value="No active subscription. Use `/setup` to activate!",
-                inline=False
-            )
         
-        # AI advice section
+        # AI-powered recommendations
         embed.add_field(
-            name="🤖 AI-Powered Recommendations",
+            name="🤖 AI-Powered Growth Recommendations",
             value=advice,
             inline=False
         )
         
-        embed.set_footer(text="📅 Reports sent every Monday at 21:00 UTC • Powered by ChatGPT")
+        # Add revenue growth chart (same as /growth)
+        if daily_revenue and len(daily_revenue) > 0:
+            growth_chart_url = generate_revenue_growth_chart(daily_revenue)
+            if growth_chart_url:
+                embed.set_image(url=growth_chart_url)
+        
+        embed.set_footer(text="📅 Sent every Monday at 21:00 UTC • Powered by ChatGPT")
         
         # Send to all admins
         admin_count = 0
@@ -119,72 +193,6 @@ class WeeklyReportsCog(commands.Cog):
                     pass  # Can't DM this admin
         
         print(f"✅ Sent weekly report to {admin_count} admins in {guild.name}")
-    
-    def get_weekly_revenue(self, guild_id: str) -> int:
-        """Calculate revenue from last 7 days"""
-        from database import _conn
-        from datetime import datetime, timedelta
-        
-        seven_days_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-        
-        conn = _conn()
-        c = conn.cursor()
-        c.execute("""
-            SELECT COALESCE(SUM(amount_mnt), 0) 
-            FROM payments 
-            WHERE guild_id=? AND status='paid' AND paid_at >= ?
-        """, (guild_id, seven_days_ago))
-        
-        revenue = c.fetchone()[0] or 0
-        conn.close()
-        return int(revenue)
-    
-    async def get_ai_advice(self, guild_name: str, total_revenue: int, weekly_revenue: int, 
-                           available_balance: int, subscription: tuple, plan_count: int) -> str:
-        """Use ChatGPT to generate personalized advice"""
-        
-        # Prepare context for AI
-        subscription_status = "Active" if subscription and subscription[3] == 'active' else "Inactive or Expired"
-        
-        prompt = f"""You are a business advisor for Discord server monetization. Analyze this server's performance and give 3 concise, actionable recommendations in 150 words or less.
-
-Server: {guild_name}
-All-Time Revenue: {total_revenue:,}₮
-Last 7 Days Revenue: {weekly_revenue:,}₮
-Available Balance: {available_balance:,}₮
-Bot Subscription: {subscription_status}
-Active Role Plans: {plan_count}
-
-Focus on:
-1. Revenue trends (growth/decline)
-2. Bot subscription status
-3. Actionable improvements
-
-Use emojis and be encouraging. Keep it brief and practical."""
-
-        try:
-            # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-            # do not change this unless explicitly requested by the user
-            response = self.openai.chat.completions.create(
-                model="gpt-5",
-                messages=[
-                    {"role": "system", "content": "You are a helpful business advisor specializing in Discord server monetization. Be concise, encouraging, and actionable."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_completion_tokens=300
-            )
-            
-            return response.choices[0].message.content.strip()
-        
-        except Exception as e:
-            print(f"❌ OpenAI API error: {e}")
-            # Fallback advice if AI fails
-            if weekly_revenue == 0:
-                return "💡 No revenue this week. Try promoting your roles more actively and consider adding new perks to attract members!"
-            elif weekly_revenue > total_revenue * 0.5:
-                return "🔥 Amazing week! Your revenue is growing fast. Keep up the great work and consider expanding your offerings!"
-            else:
-                return "📈 Steady progress! Focus on member retention and consider surveying your community to understand what they value most."
     
     @weekly_report.before_loop
     async def before_report(self):
