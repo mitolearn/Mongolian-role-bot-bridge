@@ -300,6 +300,34 @@ class OwnerCog(commands.Cog):
         except discord.Forbidden:
             await interaction.response.send_message("❌ Couldn't send you a DM. Check your privacy settings.", ephemeral=True)
 
+    @app_commands.command(name="sync", description="[OWNER ONLY] Force sync slash commands to Discord")
+    async def sync_cmd(self, interaction: discord.Interaction):
+        owner_id = int(os.getenv("OWNER_DISCORD_ID", "0"))
+        
+        # Check if user is owner
+        if owner_id == 0 or interaction.user.id != owner_id:
+            await interaction.response.send_message("❌ This command is owner-only.", ephemeral=True)
+            return
+        
+        await interaction.response.defer(ephemeral=True)
+        
+        try:
+            # Clear existing commands and re-sync
+            self.bot.tree.clear_commands(guild=None)
+            await self.bot.tree.sync()
+            
+            await interaction.followup.send(
+                "✅ **Commands synced successfully!**\n\n"
+                "Discord's cache has been cleared and all commands re-synced.\n"
+                "Commands should appear within a few minutes.\n\n"
+                "💡 If they still don't show:\n"
+                "1. Kick the bot and re-invite it\n"
+                "2. Wait up to 1 hour for Discord's global cache to update",
+                ephemeral=True
+            )
+        except Exception as e:
+            await interaction.followup.send(f"❌ Sync failed: {str(e)}", ephemeral=True)
+
 
 async def setup(bot):
     await bot.add_cog(OwnerCog(bot))
