@@ -56,7 +56,7 @@ Be brief and specific."""
     @app_commands.command(name="growth", description="📈 View your server's revenue growth and analytics with AI advice")
     @app_commands.checks.has_permissions(administrator=True)
     async def growth_cmd(self, interaction: discord.Interaction):
-        from database import (
+        from database_loader import (
             has_active_subscription, get_revenue_by_day, 
             get_role_revenue_breakdown, get_growth_stats,
             total_guild_revenue, available_to_collect, get_subscription, list_role_plans

@@ -3,7 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import os
-from database import (list_role_plans, add_role_plan, has_active_subscription, update_plan_description, 
+from database_loader import (list_role_plans, add_role_plan, has_active_subscription, update_plan_description, 
                      get_plan, set_manager_role, get_manager_role, remove_manager_role)
 
 # ---------------- CUSTOM PERMISSION CHECK ----------------
@@ -298,7 +298,7 @@ class SubscribeButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         from utils.qpay import create_qpay_invoice
-        from database import create_subscription
+        from database_loader import create_subscription
 
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
@@ -363,7 +363,7 @@ class CheckPaymentButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         from utils.qpay import check_qpay_payment_status
-        from database import mark_subscription_paid
+        from database_loader import mark_subscription_paid
 
         await interaction.response.defer(ephemeral=True)
         
@@ -515,7 +515,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="plan_toggle", description="Enable/disable a role plan")
     @admin_or_manager_check()
     async def plan_toggle(self, interaction: discord.Interaction, plan_id: int):
-        from database import toggle_role_plan, get_plan
+        from database_loader import toggle_role_plan, get_plan
 
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
@@ -568,7 +568,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="plan_delete", description="Permanently delete a role plan")
     @admin_or_manager_check()
     async def plan_delete(self, interaction: discord.Interaction, plan_id: int):
-        from database import delete_role_plan, get_plan
+        from database_loader import delete_role_plan, get_plan
 
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
@@ -773,7 +773,7 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="topmembers", description="View top paying members and statistics (Admin only)")
     @app_commands.checks.has_permissions(administrator=True)
     async def topmembers_cmd(self, interaction: discord.Interaction):
-        from database import get_top_members, get_top_members_by_plan, list_role_plans, total_guild_revenue
+        from database_loader import get_top_members, get_top_members_by_plan, list_role_plans, total_guild_revenue
         
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)

@@ -1,7 +1,7 @@
 import discord
 from discord.ext import tasks, commands
 from datetime import datetime
-from database import (get_all_subscriptions, deactivate_subscription, list_expired, 
+from database_loader import (get_all_subscriptions, deactivate_subscription, list_expired, 
                       deactivate_membership, get_plan, get_subscriptions_expiring_soon,
                       available_to_collect, renew_subscription_with_balance, mark_subscription_paid, create_subscription)
 from datetime import timedelta
@@ -64,7 +64,7 @@ class SubscriptionPackageView(discord.ui.View):
 
     async def create_qpay_renewal(self, interaction: discord.Interaction, plan_name: str, amount: int, days: int):
         from utils.qpay import create_qpay_invoice
-        from database import get_subscription
+        from database_loader import get_subscription
         
         await interaction.response.defer(ephemeral=True)
         
