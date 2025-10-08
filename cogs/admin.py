@@ -716,9 +716,11 @@ class AdminCog(commands.Cog):
             name="📊 Analytics & Revenue (Admin Only)",
             value=(
                 "**`/status`** - Revenue dashboard + 'Collect' button\n"
-                "**`/growth`** - Visual charts showing revenue trends 📈\n"
+                "**`/growth`** - Visual charts + AI business advice (GPT-4o) 🤖\n"
                 "**`/topmembers`** - See top spenders and statistics\n"
+                "• 🆕 AI analyzes your data and gives growth tips (2-3 points)\n"
                 "• Growth shows 30-day trends and role breakdowns\n"
+                "• Weekly AI reports sent every Monday to all admins\n"
                 "• 3% fee auto-deducted from all revenue"
             ),
             inline=False
@@ -729,9 +731,11 @@ class AdminCog(commands.Cog):
             name="👥 User Commands",
             value=(
                 "**`/buy`** - Purchase any role (works anywhere!)\n"
-                "**`/myplan`** - Check membership and expiry date\n"
-                "• Payment: Click plan → Get QPay link → Pay → Confirm\n"
-                "• Auto role assignment after payment"
+                "**`/myplan`** - Check ALL active memberships with timers 🟢🟡🔴\n"
+                "**`/verifypayment`** - Backup: Verify payment if buttons fail\n"
+                "• 🆕 Multi-role support: Buy and hold multiple roles at once!\n"
+                "• Each role has independent expiry date and timer\n"
+                "• Renewal DMs work in DMs with full QPay payment flow"
             ),
             inline=False
         )
