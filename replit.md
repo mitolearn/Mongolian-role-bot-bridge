@@ -4,6 +4,21 @@
 
 This is a Discord bot designed for community management with integrated payment processing and leader commission tracking. The bot handles user registration, payment confirmations through QPay API integration, and manages leader balances with commission-based rewards. It's built using Python with Discord.py for bot functionality and SQLite for data persistence.
 
+## Recent Changes (October 8, 2025)
+
+### Latest Updates (October 8, 2025)
+- **Multi-Role Support** (Oct 8, 2025): Users can now purchase and hold multiple roles simultaneously
+  - Each role has its own independent expiry date
+  - When one role expires, other active roles remain untouched
+  - `/myplan` command displays ALL active roles with individual timers
+  - Color-coded status indicators: 🟢 (healthy), 🟡 (expiring soon), 🔴 (expired)
+  - Database properly handles multiple concurrent memberships per user
+  - Membership checkers deactivate only specific expired roles (not all at once)
+- **AI Advice Fix** (Oct 8, 2025): Fixed GPT-5 token allocation issue
+  - Increased max_completion_tokens from 500 → 2000 to allow room for both reasoning and output
+  - GPT-5 uses tokens for internal "thinking" (reasoning) before generating response
+  - AI now provides comprehensive, data-driven business recommendations
+
 ## Recent Changes (October 3, 2025)
 
 ### New Features

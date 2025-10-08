@@ -44,7 +44,6 @@ Based on this data, provide:
 Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
 
         try:
-            print(f"🤖 Calling OpenAI API for {guild_name}...")
             # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
             # do not change this unless explicitly requested by the user
             response = self.openai.chat.completions.create(
@@ -56,25 +55,16 @@ Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
                 max_completion_tokens=2000  # Increased to allow room for both reasoning and output
             )
             
-            # Debug the full response
-            print(f"📋 Full OpenAI response: {response}")
-            print(f"📋 Message object: {response.choices[0].message}")
-            
             content = response.choices[0].message.content
-            print(f"📋 Raw content: {repr(content)}")
             
             if content:
                 advice = content.strip()
-                print(f"✅ OpenAI returned {len(advice)} characters of advice")
                 return advice
             else:
-                print(f"⚠️ OpenAI returned empty/None content")
                 return "AI response was empty. Please try again."
         
         except Exception as e:
             print(f"❌ OpenAI API error: {e}")
-            import traceback
-            traceback.print_exc()
             # Fallback advice
             if analytics_data['growth_percent'] and analytics_data['growth_percent'] > 20:
                 return "🔥 **Strong Growth!** Your revenue is trending up significantly. Focus on:\n• Maintaining current marketing efforts\n• Adding premium tiers for top spenders\n• Engaging with new members to improve retention"
