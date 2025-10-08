@@ -53,7 +53,7 @@ Be specific, actionable, and encouraging. Use emojis. Keep under 400 words."""
                     {"role": "system", "content": "You are an expert business advisor specializing in Discord server monetization and revenue optimization. Provide data-driven, actionable advice."},
                     {"role": "user", "content": prompt}
                 ],
-                max_completion_tokens=500
+                max_completion_tokens=2000  # Increased to allow room for both reasoning and output
             )
             
             # Debug the full response
