@@ -16,11 +16,11 @@ class RenewalChoiceView(discord.ui.View):
     
     @discord.ui.button(label="🔄 Renew Same Plan", style=discord.ButtonStyle.success)
     async def renew_same_plan(self, interaction: discord.Interaction, button: discord.ui.Button):
-        """Renew the same plan - triggers payment flow"""
+        """Renew the same plan - triggers payment flow (works in DMs)"""
         from cogs.payment import PayPlanButton
         
-        # Trigger the same flow as clicking a plan in paywall
-        plan_button = PayPlanButton(self.plan_id, f"{self.plan_name}")
+        # Create payment button with guild_id for DM support
+        plan_button = PayPlanButton(self.plan_id, f"{self.plan_name}", self.guild_id)
         await plan_button.callback(interaction)
     
     @discord.ui.button(label="🛍️ See Other Plans", style=discord.ButtonStyle.primary)
@@ -50,11 +50,11 @@ class RenewalChoiceView(discord.ui.View):
                 inline=False
             )
         
-        # Create view with plan buttons
+        # Create view with plan buttons (pass guild_id for DM support)
         from cogs.payment import PayPlanButton
         view = discord.ui.View(timeout=None)
         for pid, role_id, role_name, price, days, active, description in plans:
-            view.add_item(PayPlanButton(pid, f"{role_name} — {price}₮/{days}d"))
+            view.add_item(PayPlanButton(pid, f"{role_name} — {price}₮/{days}d", self.guild_id))
         
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 

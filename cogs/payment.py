@@ -7,13 +7,17 @@ from cogs.admin import admin_or_manager_check
 
 
 class PayPlanButton(discord.ui.Button):
-    def __init__(self, plan_id: int, label: str):
+    def __init__(self, plan_id: int, label: str, guild_id: str = None):
         super().__init__(label=f"💳 {label}", style=discord.ButtonStyle.success)
         self.plan_id = plan_id
+        self.guild_id = guild_id  # Store guild_id for DM support
 
     async def callback(self, interaction: discord.Interaction):
-        if not interaction.guild:
-            await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
+        # Use stored guild_id for DMs, or interaction.guild.id for server use
+        guild_id = self.guild_id or (str(interaction.guild.id) if interaction.guild else None)
+        
+        if not guild_id:
+            await interaction.response.send_message("❌ Could not determine server.", ephemeral=True)
             return
             
         plan = get_plan(self.plan_id)
@@ -29,13 +33,13 @@ class PayPlanButton(discord.ui.Button):
             await interaction.followup.send("❌ Failed to create QPay invoice.", ephemeral=True)
             return
 
-        # Save payment
-        create_payment(invoice_id, str(interaction.guild.id), str(interaction.user.id),
+        # Save payment with guild_id
+        create_payment(invoice_id, guild_id, str(interaction.user.id),
                        self.plan_id, plan["price_mnt"], payment_url or f"qr:{qr_text}")
 
-        # Build payment view with ONLY Pay Now button
+        # Build payment view with Pay Now button (pass guild_id for DM support)
         view = discord.ui.View(timeout=None)
-        view.add_item(PayNowButton(invoice_id, payment_url or "", plan['role_name'], plan['price_mnt']))
+        view.add_item(PayNowButton(invoice_id, payment_url or "", plan['role_name'], plan['price_mnt'], guild_id))
 
         # Build description with plan benefits
         desc_text = f"**Plan:** {plan['role_name']}\n**Amount:** {plan['price_mnt']:,}₮\n\n"
@@ -55,12 +59,13 @@ class PayPlanButton(discord.ui.Button):
 
 
 class PayNowButton(discord.ui.Button):
-    def __init__(self, invoice_id: str, payment_url: str, plan_name: str, amount: int):
+    def __init__(self, invoice_id: str, payment_url: str, plan_name: str, amount: int, guild_id: str = None):
         super().__init__(label="💰 Pay Now", style=discord.ButtonStyle.success, custom_id=f"pay_{invoice_id}")
         self.invoice_id = invoice_id
         self.payment_url = payment_url
         self.plan_name = plan_name
         self.amount = amount
+        self.guild_id = guild_id  # Store for DM support
 
     async def callback(self, interaction: discord.Interaction):
         url = self.payment_url or f"https://s.qpay.mn/payment/{self.invoice_id}"
@@ -72,7 +77,7 @@ class PayNowButton(discord.ui.Button):
             style=discord.ButtonStyle.link, 
             url=url
         ))
-        view.add_item(CheckPaymentButton(self.invoice_id))
+        view.add_item(CheckPaymentButton(self.invoice_id, self.guild_id))
         
         embed = discord.Embed(
             title="💰 QPay Payment Link Ready!",
@@ -90,9 +95,10 @@ class PayNowButton(discord.ui.Button):
 
 
 class CheckPaymentButton(discord.ui.Button):
-    def __init__(self, invoice_id: str):
+    def __init__(self, invoice_id: str, guild_id: str = None):
         super().__init__(label="🔍 Check Payment", style=discord.ButtonStyle.secondary)
         self.invoice_id = invoice_id
+        self.guild_id = guild_id  # Store for DM support (not strictly needed but for consistency)
 
     async def callback(self, interaction: discord.Interaction):
         from database import get_membership_by_invoice
