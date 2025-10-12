@@ -1,12 +1,17 @@
-# database_loader.py - Smart database loader
-# Automatically uses PostgreSQL if DATABASE_URL exists, otherwise SQLite
+# database_loader.py - Smart database loader (forced to SQLite)
+# Always uses SQLite (production.db), ignores DATABASE_URL unless explicitly forced
+
 import os
 
-if os.getenv("DATABASE_URL"):
-    # PostgreSQL
+# ✅ Always prefer SQLite unless FORCE_POSTGRES=true is set
+USE_POSTGRES = os.getenv("FORCE_POSTGRES", "false").lower() == "true"
+DB_NAME = os.getenv("DB_NAME", "production.db")
+
+if USE_POSTGRES:
+    print("🐘 Using PostgreSQL database (FORCE_POSTGRES=true)")
     from database_postgres import *
-    from database_postgres import _conn  # Explicitly export _conn for owner.py
+    from database_postgres import _conn  # Export for owner.py
 else:
-    # SQLite
+    print(f"🗄️ Using SQLite database: {DB_NAME}")
     from database import *
-    from database import _conn  # Explicitly export _conn for owner.py
+    from database import _conn  # Export for owner.py
