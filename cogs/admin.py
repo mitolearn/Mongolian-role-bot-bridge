@@ -115,9 +115,9 @@ class DetailedGuideButton(discord.ui.Button):
         embed.add_field(
             name="💳 Subscription Plans (Required to Use Bot)",
             value=(
-                "**Basic** - 100₮/month (30 days)\n"
-                "**Pro** - 200₮/6 months (180 days)\n"
-                "**Premium** - 300₮/year (365 days)\n\n"
+                "**Basic** - 59'900₮/month (30 days)\n"
+                "**Pro** - 149'900₮/6 months (90 days)\n"
+                "**Premium** - 279'900₮/year (180 days)\n\n"
                 "• Pay via QPay Mongolia\n"
                 "• Get DM reminder 3 days before expiry\n"
                 "• Can renew with QPay or collected balance\n"
