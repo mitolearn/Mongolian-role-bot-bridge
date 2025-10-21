@@ -13,6 +13,10 @@
   - Color-coded warnings: 🟢 (>7 days), 🟡 (≤7 days), 🔴 (expired)
   - Proactive admin reminders to renew before expiry
 - **User Experience**: Admins can now see when bot subscription ends before it stops working
+- **Top Members Display Fix**: `/topmembers` now shows actual Discord nicknames/usernames instead of user IDs
+  - Fetches live Discord member data for accurate display names
+  - Shows server nicknames (if set) or Discord usernames
+  - Fallback to user ID only if member left server
 
 ### October 21, 2025 - Soft-Delete Plan System (Data Preservation)
 - **Historical Data Preservation**: Implemented soft-delete for role plans to preserve all analytics and payment history

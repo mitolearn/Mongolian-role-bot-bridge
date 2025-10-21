@@ -839,7 +839,15 @@ class AdminCog(commands.Cog):
             top_text = ""
             for i, (user_id, username, payments, total_spent) in enumerate(top_overall, 1):
                 medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"**#{i}**"
-                display_name = username or f"User {user_id}"
+                
+                # Fetch Discord member to get actual name/nickname
+                try:
+                    member = await interaction.guild.fetch_member(int(user_id))
+                    display_name = member.display_name  # Nickname if set, otherwise username
+                except:
+                    # Fallback: Use database username or user ID
+                    display_name = username if username and not username.isdigit() else f"User {user_id}"
+                
                 top_text += f"{medal} **{display_name}** — {total_spent:,}₮ ({payments} payments)\n"
             
             embed.add_field(
@@ -867,7 +875,14 @@ class AdminCog(commands.Cog):
             if top_plan:
                 plan_text = ""
                 for i, (user_id, username, purchases, total_spent) in enumerate(top_plan, 1):
-                    display_name = username or f"User {user_id}"
+                    # Fetch Discord member to get actual name/nickname
+                    try:
+                        member = await interaction.guild.fetch_member(int(user_id))
+                        display_name = member.display_name  # Nickname if set, otherwise username
+                    except:
+                        # Fallback: Use database username or user ID
+                        display_name = username if username and not username.isdigit() else f"User {user_id}"
+                    
                     plan_text += f"{i}. **{display_name}** — {total_spent:,}₮ ({purchases}x)\n"
                 
                 embed.add_field(
