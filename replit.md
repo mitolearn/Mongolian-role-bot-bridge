@@ -17,6 +17,7 @@
   - Fetches live Discord member data for accurate display names
   - Shows server nicknames (if set) or Discord usernames
   - Fallback to user ID only if member left server
+  - **Deleted Plans Preserved**: Shows top members for deleted plans in breakdown (e.g., "💎 nima - Top 3" even if plan deleted)
 
 ### October 21, 2025 - Soft-Delete Plan System (Data Preservation)
 - **Historical Data Preservation**: Implemented soft-delete for role plans to preserve all analytics and payment history

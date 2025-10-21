@@ -862,8 +862,8 @@ class AdminCog(commands.Cog):
                 inline=False
             )
         
-        # Get all plans with revenue
-        plans = list_role_plans(guild_id, only_active=False)
+        # Get all plans with revenue (including deleted plans for historical data)
+        plans = list_role_plans(guild_id, only_active=False, include_deleted=True)
         
         # Add top members per plan
         for plan in plans[:5]:  # Show top 5 plans to avoid hitting embed limit
