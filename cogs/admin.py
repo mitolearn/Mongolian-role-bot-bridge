@@ -666,11 +666,44 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="bot_info", description="Show bot commands and features guide")
     @app_commands.checks.has_permissions(administrator=True)
     async def info_cmd(self, interaction: discord.Interaction):
+        from database import get_subscription
+        from datetime import datetime
+        
         embed = discord.Embed(
             title="🤖 Bot Commands Guide",
             description="Quick reference for all bot features",
             color=0x3498db
         )
+        
+        # Add bot subscription status at the top
+        if interaction.guild:
+            subscription = get_subscription(str(interaction.guild.id))
+            if subscription:
+                plan_name, amount_mnt, expires_at, status = subscription
+                try:
+                    expiry_date = datetime.fromisoformat(expires_at)
+                    days_left = (expiry_date - datetime.utcnow()).days
+                    
+                    if days_left < 0:
+                        sub_status = "🔴 **Expired!** Run `/setup` to renew"
+                    elif days_left <= 3:
+                        sub_status = f"🟡 **{days_left} days left** - ⚠️ Renew now!"
+                    elif days_left <= 7:
+                        sub_status = f"🟡 **{days_left} days left**"
+                    else:
+                        sub_status = f"🟢 **{days_left} days left**"
+                    
+                    embed.add_field(
+                        name="🤖 Your Bot Subscription",
+                        value=f"**Plan:** {plan_name}\n**Expires:** {expires_at[:10]}\n{sub_status}",
+                        inline=False
+                    )
+                except:
+                    embed.add_field(
+                        name="🤖 Your Bot Subscription",
+                        value=f"**Plan:** {plan_name}\n**Expires:** {expires_at[:10]}",
+                        inline=False
+                    )
         
         # CRITICAL WARNINGS FIRST
         embed.add_field(

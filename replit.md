@@ -2,6 +2,18 @@
 
 ## Recent Changes
 
+### October 21, 2025 - Status Command Improvements & Bot Subscription Visibility
+- **Fixed "Available to Collect" Math**: Corrected gross calculation to show uncollected amount (not total revenue)
+  - Gross now correctly shows amount before 3% fee deduction
+  - Fee calculation accurate for available balance
+  - Net shows actual collectible amount after fees
+- **Bot Subscription Visibility**: Added subscription expiry info to admin commands
+  - `/status` command now shows bot subscription plan, expiry date, and days remaining
+  - `/bot_info` command displays subscription status at the top
+  - Color-coded warnings: 🟢 (>7 days), 🟡 (≤7 days), 🔴 (expired)
+  - Proactive admin reminders to renew before expiry
+- **User Experience**: Admins can now see when bot subscription ends before it stops working
+
 ### October 21, 2025 - Soft-Delete Plan System (Data Preservation)
 - **Historical Data Preservation**: Implemented soft-delete for role plans to preserve all analytics and payment history
 - **Database Schema Update**: Added `deleted_at` column to `role_plans` table with automatic migration

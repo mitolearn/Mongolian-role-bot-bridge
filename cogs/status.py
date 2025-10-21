@@ -4,7 +4,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from database import (has_active_subscription, total_guild_revenue, count_active_members, 
-                     available_to_collect, get_plans_breakdown, create_payout_record, mark_payout_done, get_payout)
+                     available_to_collect, get_plans_breakdown, create_payout_record, mark_payout_done, get_payout, get_subscription)
 
 # Get owner Discord ID from environment variable
 OWNER_DISCORD_ID = int(os.getenv("OWNER_DISCORD_ID", "0"))
@@ -302,6 +302,9 @@ class StatusCog(commands.Cog):
         available = available_to_collect(gid)
         active_members = count_active_members(gid)
         plans = get_plans_breakdown(gid)
+        
+        # Get subscription info for expiry date
+        subscription = get_subscription(gid)
 
         # Build embed
         embed = discord.Embed(title="📊 Server Finance Dashboard", color=0x2ecc71)
@@ -327,8 +330,16 @@ class StatusCog(commands.Cog):
                 inline=False
             )
 
-        # Service fee info
-        fee_amount = int(total_revenue * 0.03)
+        # Calculate correct "Available to Collect" breakdown
+        # available is the net amount (after fee and previous payouts)
+        # Back-calculate gross: if net = gross * 0.97, then gross = net / 0.97
+        if available > 0:
+            gross_available = int(available / 0.97)
+            fee_on_available = gross_available - available
+        else:
+            gross_available = 0
+            fee_on_available = 0
+        
         MIN_COLLECT = 100000
         
         collect_status = ""
@@ -339,9 +350,38 @@ class StatusCog(commands.Cog):
         
         embed.add_field(
             name="💵 Available to Collect",
-            value=f"Gross: {total_revenue:,}₮\nFee (3%): -{fee_amount:,}₮\n**Net: {available:,}₮**{collect_status}",
+            value=f"Gross: {gross_available:,}₮\nFee (3%): -{fee_on_available:,}₮\n**Net: {available:,}₮**{collect_status}",
             inline=False
         )
+        
+        # Add bot subscription expiry info
+        if subscription:
+            plan_name, amount_mnt, expires_at, status = subscription
+            from datetime import datetime
+            try:
+                expiry_date = datetime.fromisoformat(expires_at)
+                days_left = (expiry_date - datetime.utcnow()).days
+                
+                if days_left < 0:
+                    sub_status = "🔴 **Expired!**"
+                elif days_left <= 3:
+                    sub_status = f"🟡 **{days_left} days left** (Renew soon!)"
+                elif days_left <= 7:
+                    sub_status = f"🟡 **{days_left} days left**"
+                else:
+                    sub_status = f"🟢 **{days_left} days left**"
+                
+                embed.add_field(
+                    name="🤖 Bot Subscription",
+                    value=f"**Plan:** {plan_name}\n**Expires:** {expires_at[:10]}\n{sub_status}",
+                    inline=False
+                )
+            except:
+                embed.add_field(
+                    name="🤖 Bot Subscription",
+                    value=f"**Plan:** {plan_name}\n**Expires:** {expires_at[:10]}",
+                    inline=False
+                )
 
         embed.set_footer(text="💡 3% service fee deducted | Minimum 100,000₮ to collect")
 
