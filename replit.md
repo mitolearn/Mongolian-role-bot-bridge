@@ -1,5 +1,19 @@
 # Replit.md
 
+## Recent Changes
+
+### October 21, 2025 - AI Developer Assistant Integration
+- **New Feature**: Added `/devchat` command for owner-only AI-powered development assistance
+- **Direct OpenAI Integration**: Integrated GPT-5 model to provide code analysis and development advice
+- **Cost Optimization**: Direct API calls to OpenAI (bypassing Replit Agent) to minimize development costs
+- **Code Context Awareness**: AI can see bot's codebase and provide targeted advice for Twin Sun Bot improvements
+- **Security**: Command restricted to bot owner via OWNER_ID environment variable
+- **Technical Implementation**: 
+  - Created `cogs/devchat.py` with context-aware AI assistant
+  - Updated OpenAI library to version 2.6.0 for modern API support
+  - Added OWNER_ID secret management
+  - Bot loads code context from main files before sending queries to AI
+
 ## Overview
 
 This Discord bot facilitates community management, integrating payment processing and leader commission tracking. It handles user registration, payment confirmations via QPay, and manages leader balances with a commission-based reward system. The bot is developed in Python using `discord.py` and supports both PostgreSQL and SQLite for data persistence, adapting to the deployment environment. Its purpose is to streamline community operations, automate payment handling, and provide valuable insights through AI-powered analytics. The project aims to enable efficient monetization and growth for Discord communities, allowing seamless sharing of data between the bot and a prospective website.
@@ -44,25 +58,30 @@ Preferred communication style: Simple, everyday language.
     - **Plan Descriptions**: Admins can add marketing descriptions to role plans.
     - **Role Automation**: Automatic Discord role assignment/removal based on payment status and expiry.
     - **Bot Information**: `/bot_info` command provides critical warnings, command list, and a detailed guide.
+- **Developer Tools**:
+    - **AI Developer Assistant**: `/devchat` command (owner-only) provides GPT-5 powered development advice with full codebase context
+    - **Direct OpenAI Integration**: Cost-optimized direct API calls for development assistance
+    - **Code-Aware Responses**: AI reads bot files to provide contextual, specific guidance for improvements
 
 ### System Design Choices
 - **Database**: PostgreSQL for production (Railway) for scalability and concurrent access, SQLite for development/testing (Replit) for ease of setup.
 - **Discord.py Framework**: Chosen for its robustness, extensive features, and active community.
-- **AI Model**: GPT-4o for AI analysis, selected for its balance of cost-effectiveness, speed, and analytical capabilities.
+- **AI Model**: GPT-4o for automated analytics/weekly reports, GPT-5 for owner's development assistant, selected for their balance of cost-effectiveness, speed, and analytical capabilities.
 
 ## External Dependencies
 
 ### APIs and Services
 - **Discord API**: Primary platform for bot interaction, provided via the `discord.py` library.
 - **QPay Payment API**: Used for secure payment processing, invoice generation, and status verification.
-- **OpenAI API**: Utilized for AI-powered business recommendations and analysis (GPT-4o model).
+- **OpenAI API**: Utilized for AI-powered business recommendations and analysis (GPT-4o model for analytics, GPT-5 for developer assistant).
 - **QuickChart.io API**: Generates visual charts for analytics dashboards.
 
 ### Python Libraries
 - `discord.py`: Core library for Discord bot development.
-- `psycopg2` (implied by PostgreSQL usage): PostgreSQL adapter for Python.
+- `psycopg2-binary`: PostgreSQL adapter for Python.
 - `sqlite3`: Built-in library for SQLite database interactions.
-- `requests`: For making HTTP requests to external APIs (QPay, QuickChart.io, OpenAI).
+- `requests`: For making HTTP requests to external APIs (QPay, QuickChart.io).
+- `openai` (v2.6.0): Official OpenAI client library for GPT-5 and GPT-4o API access.
 - `datetime`: For handling date and time operations, crucial for subscriptions and renewals.
 
 ### Infrastructure
