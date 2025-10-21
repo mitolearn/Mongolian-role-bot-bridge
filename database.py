@@ -199,14 +199,38 @@ def add_role_plan(guild_id: str, role_id: str, role_name: str, price_mnt: int, d
     conn.commit(); conn.close()
     return plan_id
 
-def list_role_plans(guild_id: str, only_active=True):
+def list_role_plans(guild_id: str, only_active=True, include_deleted=False):
+    """List role plans for a guild
+    
+    Args:
+        guild_id: The guild ID
+        only_active: If True, only return plans where active=1
+        include_deleted: If True, include soft-deleted plans (for analytics)
+    """
     conn = _conn(); c = conn.cursor()
-    if only_active:
+    
+    # Build query based on filters
+    if only_active and not include_deleted:
+        # Default: only active, non-deleted plans (for user-facing features)
         c.execute("""SELECT plan_id, role_id, role_name, price_mnt, duration_days, active, description
-                     FROM role_plans WHERE guild_id=? AND active=1 ORDER BY price_mnt ASC""", (guild_id,))
+                     FROM role_plans WHERE guild_id=? AND active=1 AND deleted_at IS NULL 
+                     ORDER BY price_mnt ASC""", (guild_id,))
+    elif only_active and include_deleted:
+        # Active plans, including deleted (for some analytics)
+        c.execute("""SELECT plan_id, role_id, role_name, price_mnt, duration_days, active, description
+                     FROM role_plans WHERE guild_id=? AND active=1 
+                     ORDER BY price_mnt ASC""", (guild_id,))
+    elif not only_active and not include_deleted:
+        # All active statuses, but exclude deleted
+        c.execute("""SELECT plan_id, role_id, role_name, price_mnt, duration_days, active, description
+                     FROM role_plans WHERE guild_id=? AND deleted_at IS NULL 
+                     ORDER BY price_mnt ASC""", (guild_id,))
     else:
+        # All plans including deleted (for full analytics)
         c.execute("""SELECT plan_id, role_id, role_name, price_mnt, duration_days, active, description
-                     FROM role_plans WHERE guild_id=? ORDER BY price_mnt ASC""", (guild_id,))
+                     FROM role_plans WHERE guild_id=? 
+                     ORDER BY price_mnt ASC""", (guild_id,))
+    
     rows = c.fetchall(); conn.close()
     return rows
 
@@ -245,12 +269,13 @@ def delete_role_plan(plan_id: int):
 
 def get_plan(plan_id: int):
     conn = _conn(); c = conn.cursor()
-    c.execute("""SELECT plan_id, guild_id, role_id, role_name, price_mnt, duration_days, active, description
+    c.execute("""SELECT plan_id, guild_id, role_id, role_name, price_mnt, duration_days, active, description, deleted_at
                  FROM role_plans WHERE plan_id=?""", (plan_id,))
     row = c.fetchone(); conn.close()
     if not row: return None
     return {"plan_id": row[0], "guild_id": row[1], "role_id": row[2], "role_name": row[3],
-            "price_mnt": row[4], "duration_days": row[5], "active": row[6], "description": row[7] or ""}
+            "price_mnt": row[4], "duration_days": row[5], "active": row[6], "description": row[7] or "",
+            "deleted_at": row[8]}
 
 # ---------- USERS ----------
 def upsert_user(guild_id: str, user_id: str, username: str):
@@ -589,7 +614,7 @@ def available_to_collect(guild_id: str):
     return max(0, gross - fee - paid_out)
 
 def get_plans_breakdown(guild_id: str):
-    """Get revenue breakdown by plan - only shows plans with active members"""
+    """Get revenue breakdown by plan - shows all plans with active members (including deleted plans)"""
     conn = _conn(); c = conn.cursor()
     c.execute("""
         SELECT 
@@ -735,7 +760,7 @@ def get_revenue_by_day(guild_id: str, days: int = 30):
     return rows
 
 def get_role_revenue_breakdown(guild_id: str):
-    """Get total revenue breakdown by role plan"""
+    """Get total revenue breakdown by role plan (includes deleted plans for historical accuracy)"""
     conn = _conn(); c = conn.cursor()
     c.execute("""
         SELECT 
