@@ -49,7 +49,8 @@ def init_db():
         price_mnt INTEGER,
         duration_days INTEGER,
         active INTEGER DEFAULT 1,
-        description TEXT DEFAULT ''
+        description TEXT DEFAULT '',
+        deleted_at TEXT DEFAULT NULL
     )
     """)
     
@@ -58,6 +59,10 @@ def init_db():
     role_plan_columns = [row[1] for row in c.fetchall()]
     if 'description' not in role_plan_columns:
         c.execute("ALTER TABLE role_plans ADD COLUMN description TEXT DEFAULT ''")
+    
+    # Add deleted_at column if it doesn't exist (for soft-delete support)
+    if 'deleted_at' not in role_plan_columns:
+        c.execute("ALTER TABLE role_plans ADD COLUMN deleted_at TEXT DEFAULT NULL")
 
     # Check if users table exists and has the correct schema
     c.execute("PRAGMA table_info(users)")
@@ -217,20 +222,26 @@ def toggle_role_plan(plan_id: int, active: int):
     conn.commit(); conn.close()
 
 def delete_role_plan(plan_id: int):
-    """Permanently delete a role plan from the database"""
+    """Soft-delete a role plan (mark as deleted but preserve historical data)"""
     conn = _conn(); c = conn.cursor()
 
-    # First check if plan exists
-    c.execute("SELECT plan_id FROM role_plans WHERE plan_id=?", (plan_id,))
-    if not c.fetchone():
+    # First check if plan exists and is not already deleted
+    c.execute("SELECT plan_id, deleted_at FROM role_plans WHERE plan_id=?", (plan_id,))
+    row = c.fetchone()
+    if not row:
         conn.close()
         return False  # Plan doesn't exist
+    
+    if row[1]:  # deleted_at is not NULL
+        conn.close()
+        return False  # Plan already deleted
 
-    # Delete the plan (keeping plan_id gaps is fine - prevents foreign key corruption)
-    c.execute("DELETE FROM role_plans WHERE plan_id=?", (plan_id,))
+    # Soft-delete: set deleted_at timestamp
+    now = datetime.utcnow().isoformat()
+    c.execute("UPDATE role_plans SET deleted_at=? WHERE plan_id=?", (now, plan_id))
     conn.commit()
     conn.close()
-    return True  # Successfully deleted
+    return True  # Successfully soft-deleted
 
 def get_plan(plan_id: int):
     conn = _conn(); c = conn.cursor()
