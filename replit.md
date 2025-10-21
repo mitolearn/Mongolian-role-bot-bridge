@@ -2,6 +2,15 @@
 
 ## Recent Changes
 
+### October 21, 2025 - Soft-Delete Plan System (Data Preservation)
+- **Historical Data Preservation**: Implemented soft-delete for role plans to preserve all analytics and payment history
+- **Database Schema Update**: Added `deleted_at` column to `role_plans` table with automatic migration
+- **Smart Renewal Flow**: When deleted plans expire, users see "See Other Plans" button only (not "Renew Same Plan")
+- **User Experience**: `/myplan` command shows deleted plans with ⚠️ indicator and "Plan Removed" warning while keeping expiry info
+- **Analytics Integrity**: All analytics commands (`/growth`, `/topmembers`, `/status`) include deleted plans in historical data
+- **Admin Benefits**: Admins can now see which deleted plans were most efficient and profitable
+- **Technical**: Soft-delete preserves all relationships (payments, memberships) preventing data loss
+
 ### October 21, 2025 - AI Developer Assistant Integration
 - **New Feature**: Added `/devchat` command for owner-only AI-powered development assistance
 - **Direct OpenAI Integration**: Integrated GPT-4o model to provide code analysis and development advice
