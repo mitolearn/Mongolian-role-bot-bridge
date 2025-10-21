@@ -5,7 +5,7 @@ import os
 
 # ✅ Always prefer SQLite unless FORCE_POSTGRES=true is set
 USE_POSTGRES = os.getenv("FORCE_POSTGRES", "false").lower() == "true"
-DB_NAME = os.getenv("DB_NAME", "production.db")
+DB_NAME = os.getenv("DB_NAME", "database.db")
 
 if USE_POSTGRES:
     print("🐘 Using PostgreSQL database (FORCE_POSTGRES=true)")
