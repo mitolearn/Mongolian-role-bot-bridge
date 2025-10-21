@@ -5,6 +5,49 @@ from database import list_expired, get_plan, deactivate_membership, get_user_act
 from datetime import datetime, timedelta
 from utils.qpay import create_qpay_invoice
 
+class SeeOtherPlansView(discord.ui.View):
+    """View with only 'See Other Plans' button (for deleted plans)"""
+    def __init__(self, guild_id: str, guild_name: str):
+        super().__init__(timeout=None)
+        self.guild_id = guild_id
+        self.guild_name = guild_name
+    
+    @discord.ui.button(label="🛍️ See Other Plans", style=discord.ButtonStyle.primary)
+    async def see_other_plans(self, interaction: discord.Interaction, button: discord.ui.Button):
+        """Show all available plans in DM (like paywall but in DM)"""
+        await interaction.response.defer(ephemeral=True)
+        
+        # Get all active, non-deleted plans
+        plans = list_role_plans(self.guild_id, only_active=True, include_deleted=False)
+        if not plans:
+            await interaction.followup.send("❌ No plans available right now.", ephemeral=True)
+            return
+        
+        # Create paywall-style embed
+        embed = discord.Embed(
+            title=f"🔑 Available Plans in {self.guild_name}",
+            description="Choose any plan below to unlock exclusive perks!",
+            color=0x2ecc71
+        )
+        
+        # Add plan details
+        for pid, role_id, role_name, price, days, active, description in plans:
+            desc_text = description if description else "_No description added yet_"
+            embed.add_field(
+                name=f"💎 {role_name} — {price:,}₮/{days} days",
+                value=desc_text,
+                inline=False
+            )
+        
+        # Create view with plan buttons (pass guild_id for DM support)
+        from cogs.payment import PayPlanButton
+        view = discord.ui.View(timeout=None)
+        for pid, role_id, role_name, price, days, active, description in plans:
+            view.add_item(PayPlanButton(pid, f"{role_name} — {price}₮/{days}d", self.guild_id))
+        
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+
+
 class RenewalChoiceView(discord.ui.View):
     """View with two buttons: Renew Same Plan or See Other Plans"""
     def __init__(self, guild_id: str, guild_name: str, plan_id: int, plan_name: str):
@@ -28,8 +71,8 @@ class RenewalChoiceView(discord.ui.View):
         """Show all available plans in DM (like paywall but in DM)"""
         await interaction.response.defer(ephemeral=True)
         
-        # Get all active plans
-        plans = list_role_plans(self.guild_id, only_active=True)
+        # Get all active, non-deleted plans
+        plans = list_role_plans(self.guild_id, only_active=True, include_deleted=False)
         if not plans:
             await interaction.followup.send("❌ No plans available right now.", ephemeral=True)
             return
@@ -82,9 +125,12 @@ class MembershipCog(commands.Cog):
                     
                     # Send DM based on plan availability
                     try:
-                        # Check if plan is still active
-                        if plan.get("active") == 1:
-                            # Plan is still active - offer renewal with choice buttons
+                        # Check if plan is deleted
+                        is_deleted = plan.get("deleted_at") is not None
+                        is_active = plan.get("active") == 1
+                        
+                        if is_active and not is_deleted:
+                            # Plan is active and not deleted - offer renewal with both buttons
                             embed = discord.Embed(
                                 title="⏰ Your Membership Has Expired!",
                                 description=f"Your **{plan['role_name']}** membership in **{guild.name}** has ended.",
@@ -137,8 +183,42 @@ class MembershipCog(commands.Cog):
                             )
                             
                             await member.send(embed=embed, view=view)
+                        
+                        elif is_deleted:
+                            # Plan is deleted - show only "See Other Plans" button
+                            embed = discord.Embed(
+                                title="⏰ Your Membership Has Expired!",
+                                description=f"Your **{plan['role_name']}** membership in **{guild.name}** has ended.",
+                                color=0xe67e22
+                            )
+                            
+                            embed.add_field(
+                                name="📦 Expired Plan",
+                                value=f"**{plan['role_name']}**",
+                                inline=True
+                            )
+                            
+                            embed.add_field(
+                                name="⚠️ Plan Removed",
+                                value="This plan has been removed by the admin.",
+                                inline=True
+                            )
+                            
+                            embed.add_field(
+                                name="🛍️ Next Steps",
+                                value="Browse other available plans to continue enjoying server perks!",
+                                inline=False
+                            )
+                            
+                            embed.set_footer(text=f"Server: {guild.name}")
+                            
+                            # Create view with only "See Other Plans" button
+                            view = SeeOtherPlansView(str(guild.id), guild.name)
+                            
+                            await member.send(embed=embed, view=view)
+                        
                         else:
-                            # Plan is deleted or deactivated - notify user
+                            # Plan is deactivated (not deleted) - show only "See Other Plans" button
                             embed = discord.Embed(
                                 title="⏰ Your Membership Has Expired!",
                                 description=f"Your **{plan['role_name']}** membership in **{guild.name}** has ended.",
@@ -148,21 +228,27 @@ class MembershipCog(commands.Cog):
                             embed.add_field(
                                 name="📦 Expired Plan",
                                 value=f"**{plan['role_name']}**",
-                                inline=False
+                                inline=True
                             )
                             
                             embed.add_field(
-                                name="⚠️ Plan No Longer Available",
-                                value=(
-                                    "This plan has been removed or deactivated by the server admin.\n\n"
-                                    f"Use `/buy` in **{guild.name}** to see other available plans!"
-                                ),
+                                name="⚠️ Plan Temporarily Disabled",
+                                value="This plan has been temporarily disabled.",
+                                inline=True
+                            )
+                            
+                            embed.add_field(
+                                name="🛍️ Next Steps",
+                                value="Browse other available plans to continue enjoying server perks!",
                                 inline=False
                             )
                             
                             embed.set_footer(text=f"Server: {guild.name}")
                             
-                            await member.send(embed=embed)
+                            # Create view with only "See Other Plans" button
+                            view = SeeOtherPlansView(str(guild.id), guild.name)
+                            
+                            await member.send(embed=embed, view=view)
                     except Exception as e:
                         print(f"Failed to send renewal DM: {e}")
 
@@ -288,6 +374,9 @@ class MembershipCog(commands.Cog):
             if not plan:
                 continue
             
+            # Check if plan is deleted
+            is_deleted = plan.get("deleted_at") is not None
+            
             # Calculate remaining days
             try:
                 expiry_date = datetime.fromisoformat(access_ends_at)
@@ -304,9 +393,18 @@ class MembershipCog(commands.Cog):
             # Add field for this membership
             status_emoji = "🟢" if days_left > 7 else ("🟡" if days_left > 0 else "🔴")
             
+            # Add deleted indicator if plan was deleted
+            plan_name = plan['role_name']
+            if is_deleted:
+                plan_name += " ⚠️ (Plan Removed)"
+            
+            field_value = f"**Expires:** {access_ends_at[:10]}\n**Days left:** {days_left} day{'s' if days_left != 1 else ''}"
+            if is_deleted:
+                field_value += "\n_This plan is no longer available for renewal_"
+            
             embed.add_field(
-                name=f"{status_emoji} {plan['role_name']}",
-                value=f"**Expires:** {access_ends_at[:10]}\n**Days left:** {days_left} day{'s' if days_left != 1 else ''}",
+                name=f"{status_emoji} {plan_name}",
+                value=field_value,
                 inline=True
             )
         
