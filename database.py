@@ -532,6 +532,8 @@ def renew_subscription_with_balance(guild_id: str, plan_name: str, duration_days
     conn.commit()
     conn.close()
     
+    # Note: Admin notification should be sent by the calling function (subscription_checker.py)
+    # because database.py doesn't have access to Discord bot instance
     return (True, new_expiry_str, f"Successfully renewed with collected balance. New expiry: {new_expiry_str[:10]}")
 
 def deactivate_subscription(guild_id: str):
