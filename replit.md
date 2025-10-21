@@ -4,15 +4,17 @@
 
 ### October 21, 2025 - AI Developer Assistant Integration
 - **New Feature**: Added `/devchat` command for owner-only AI-powered development assistance
-- **Direct OpenAI Integration**: Integrated GPT-5 model to provide code analysis and development advice
+- **Direct OpenAI Integration**: Integrated GPT-4o model to provide code analysis and development advice
 - **Cost Optimization**: Direct API calls to OpenAI (bypassing Replit Agent) to minimize development costs
-- **Code Context Awareness**: AI can see bot's codebase and provide targeted advice for Twin Sun Bot improvements
+- **Full Codebase Access**: AI reads ALL Python files (main, cogs, utils) plus documentation files for comprehensive understanding
+- **Replit Agent-Level Capabilities**: Enhanced system prompt enables expert-level development assistance comparable to Replit Agent
 - **Security**: Command restricted to bot owner via OWNER_ID environment variable
 - **Technical Implementation**: 
-  - Created `cogs/devchat.py` with context-aware AI assistant
+  - Created `cogs/devchat.py` with full codebase scanning functionality
   - Updated OpenAI library to version 2.6.0 for modern API support
   - Added OWNER_ID secret management
-  - Bot loads code context from main files before sending queries to AI
+  - AI receives complete project context: all .py files, replit.md, requirements.txt, and setup documentation
+  - 4000 token output limit for comprehensive responses
 
 ## Overview
 
@@ -59,21 +61,23 @@ Preferred communication style: Simple, everyday language.
     - **Role Automation**: Automatic Discord role assignment/removal based on payment status and expiry.
     - **Bot Information**: `/bot_info` command provides critical warnings, command list, and a detailed guide.
 - **Developer Tools**:
-    - **AI Developer Assistant**: `/devchat` command (owner-only) provides GPT-5 powered development advice with full codebase context
-    - **Direct OpenAI Integration**: Cost-optimized direct API calls for development assistance
-    - **Code-Aware Responses**: AI reads bot files to provide contextual, specific guidance for improvements
+    - **AI Developer Assistant**: `/devchat` command (owner-only) provides GPT-4o powered development advice with complete codebase access
+    - **Full Code Analysis**: Scans ALL Python files (main.py, database files, cogs/*.py, utils/*.py) plus documentation
+    - **Direct OpenAI Integration**: Cost-optimized direct API calls bypassing Replit Agent for reduced expenses
+    - **Expert-Level Guidance**: Enhanced to match Replit Agent capabilities with comprehensive system prompt
+    - **Context-Aware Responses**: AI sees entire project structure and can provide specific, actionable advice referencing actual code
 
 ### System Design Choices
 - **Database**: PostgreSQL for production (Railway) for scalability and concurrent access, SQLite for development/testing (Replit) for ease of setup.
 - **Discord.py Framework**: Chosen for its robustness, extensive features, and active community.
-- **AI Model**: GPT-4o for automated analytics/weekly reports, GPT-5 for owner's development assistant, selected for their balance of cost-effectiveness, speed, and analytical capabilities.
+- **AI Model**: GPT-4o for all AI features (automated analytics, weekly reports, and development assistant), selected for its balance of cost-effectiveness, speed, and analytical capabilities.
 
 ## External Dependencies
 
 ### APIs and Services
 - **Discord API**: Primary platform for bot interaction, provided via the `discord.py` library.
 - **QPay Payment API**: Used for secure payment processing, invoice generation, and status verification.
-- **OpenAI API**: Utilized for AI-powered business recommendations and analysis (GPT-4o model for analytics, GPT-5 for developer assistant).
+- **OpenAI API**: Utilized for AI-powered business recommendations, analytics, and development assistance (GPT-4o model).
 - **QuickChart.io API**: Generates visual charts for analytics dashboards.
 
 ### Python Libraries
@@ -81,7 +85,7 @@ Preferred communication style: Simple, everyday language.
 - `psycopg2-binary`: PostgreSQL adapter for Python.
 - `sqlite3`: Built-in library for SQLite database interactions.
 - `requests`: For making HTTP requests to external APIs (QPay, QuickChart.io).
-- `openai` (v2.6.0): Official OpenAI client library for GPT-5 and GPT-4o API access.
+- `openai` (v2.6.0): Official OpenAI client library for GPT-4o API access.
 - `datetime`: For handling date and time operations, crucial for subscriptions and renewals.
 
 ### Infrastructure
