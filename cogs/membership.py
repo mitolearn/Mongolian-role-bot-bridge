@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
-from database_loader import list_expired, get_plan, deactivate_membership, get_user_active_membership, create_payment, list_role_plans
+from database import list_expired, get_plan, deactivate_membership, get_user_active_membership, create_payment, list_role_plans
 from datetime import datetime, timedelta
 from utils.qpay import create_qpay_invoice
 
@@ -173,7 +173,7 @@ class MembershipCog(commands.Cog):
     @app_commands.command(name="verifypayment", description="🔄 Backup: Verify payment if Check Payment button doesn't work")
     async def verify_payment_cmd(self, interaction: discord.Interaction):
         """Allow users to manually verify their payment if buttons fail (e.g. after bot restart)"""
-        from database_loader import get_payment_by_user, mark_payment_paid, grant_membership, get_plan
+        from database import get_payment_by_user, mark_payment_paid, grant_membership, get_plan
         from utils.qpay import check_qpay_payment_status
         
         if not interaction.guild:

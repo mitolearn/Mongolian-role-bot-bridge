@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from database_loader import get_plan, create_payment, get_payment, mark_payment_paid, grant_membership
+from database import get_plan, create_payment, get_payment, mark_payment_paid, grant_membership
 from utils.qpay import create_qpay_invoice, check_qpay_payment_status
 from cogs.admin import admin_or_manager_check
 
@@ -101,7 +101,7 @@ class CheckPaymentButton(discord.ui.Button):
         self.guild_id = guild_id  # Store for DM support (not strictly needed but for consistency)
 
     async def callback(self, interaction: discord.Interaction):
-        from database_loader import get_membership_by_invoice
+        from database import get_membership_by_invoice
         
         await interaction.response.defer(ephemeral=True)
         
@@ -196,7 +196,7 @@ class PaymentsCog(commands.Cog):
     @app_commands.command(name="paywall", description="Post paywall for users to purchase roles")
     @admin_or_manager_check()
     async def paywall_cmd(self, interaction: discord.Interaction):
-        from database_loader import list_role_plans, has_active_subscription
+        from database import list_role_plans, has_active_subscription
         
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)
@@ -241,7 +241,7 @@ class PaymentsCog(commands.Cog):
 
     @app_commands.command(name="buy", description="Purchase a role directly - choose your plan!")
     async def buy_cmd(self, interaction: discord.Interaction):
-        from database_loader import list_role_plans, has_active_subscription
+        from database import list_role_plans, has_active_subscription
         
         if not interaction.guild:
             await interaction.response.send_message("❌ This must be used in a server.", ephemeral=True)

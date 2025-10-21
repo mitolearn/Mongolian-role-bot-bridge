@@ -18,7 +18,7 @@
 
 ## Overview
 
-This Discord bot facilitates community management, integrating payment processing and leader commission tracking. It handles user registration, payment confirmations via QPay, and manages leader balances with a commission-based reward system. The bot is developed in Python using `discord.py` and supports both PostgreSQL and SQLite for data persistence, adapting to the deployment environment. Its purpose is to streamline community operations, automate payment handling, and provide valuable insights through AI-powered analytics. The project aims to enable efficient monetization and growth for Discord communities, allowing seamless sharing of data between the bot and a prospective website.
+This Discord bot facilitates community management, integrating payment processing and leader commission tracking. It handles user registration, payment confirmations via QPay, and manages leader balances with a commission-based reward system. The bot is developed in Python using `discord.py` with SQLite for data persistence. Its purpose is to streamline community operations, automate payment handling, and provide valuable insights through AI-powered analytics. The project aims to enable efficient monetization and growth for Discord communities.
 
 ## User Preferences
 
@@ -34,11 +34,11 @@ Preferred communication style: Simple, everyday language.
 - **Chart Visualization**: Integration with QuickChart.io for generating visual growth and revenue charts.
 
 ### Technical Implementations
-- **Modular Python**: Codebase structured with separate modules for database operations (`database_postgres.py`, `database_loader.py`), bot commands, and payment handling.
-- **Database Abstraction**: A `database_loader.py` module intelligently switches between PostgreSQL and SQLite based on the `DATABASE_URL` environment variable, ensuring seamless deployment across environments.
+- **Modular Python**: Codebase structured with separate modules for database operations (`database.py`), bot commands (cogs), and utilities.
+- **SQLite Database**: Simple, reliable file-based database with no external dependencies.
 - **Asynchronous Operations**: Leverages `asyncio` with `discord.py` for non-blocking I/O and efficient handling of concurrent requests.
 - **Robust Error Handling**: Includes comprehensive null checks and error handling for Discord API interactions, database operations, and external API calls.
-- **Environment Variable Configuration**: Uses environment variables for sensitive credentials (Discord token, QPay keys) and environment-specific settings (e.g., subscription prices for test vs. production).
+- **Environment Variable Configuration**: Uses environment variables for sensitive credentials (Discord token, QPay keys) and configuration settings.
 
 ### Feature Specifications
 - **Payment System**:
@@ -68,7 +68,7 @@ Preferred communication style: Simple, everyday language.
     - **Context-Aware Responses**: AI sees entire project structure and can provide specific, actionable advice referencing actual code
 
 ### System Design Choices
-- **Database**: PostgreSQL for production (Railway) for scalability and concurrent access, SQLite for development/testing (Replit) for ease of setup.
+- **Database**: SQLite for simple, reliable, file-based storage with no external dependencies.
 - **Discord.py Framework**: Chosen for its robustness, extensive features, and active community.
 - **AI Model**: GPT-4o for all AI features (automated analytics, weekly reports, and development assistant), selected for its balance of cost-effectiveness, speed, and analytical capabilities.
 
@@ -82,13 +82,11 @@ Preferred communication style: Simple, everyday language.
 
 ### Python Libraries
 - `discord.py`: Core library for Discord bot development.
-- `psycopg2-binary`: PostgreSQL adapter for Python.
 - `sqlite3`: Built-in library for SQLite database interactions.
 - `requests`: For making HTTP requests to external APIs (QPay, QuickChart.io).
 - `openai` (v2.6.0): Official OpenAI client library for GPT-4o API access.
 - `datetime`: For handling date and time operations, crucial for subscriptions and renewals.
 
 ### Infrastructure
-- **PostgreSQL Database**: Production database hosted on Railway.
-- **SQLite Database**: Local file-based database for testing and backward compatibility.
-- **Environment Variables**: For managing configuration, credentials, and environment-specific settings.
+- **SQLite Database**: Local file-based database stored as `database.db`.
+- **Environment Variables**: For managing configuration, credentials, and settings.

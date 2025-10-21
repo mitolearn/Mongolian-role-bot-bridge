@@ -2,8 +2,7 @@ import os
 import discord
 from discord.ext import commands
 
-# Auto-detect database type and import from loader
-from database_loader import init_db
+from database import init_db
 
 from utils.qpay import validate_qpay_credentials
 
